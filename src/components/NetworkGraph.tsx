@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useLayoutEffect } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -14,59 +14,49 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-// Generate a collection of nodes representing different communities
+// Generate nodes with force-directed positioning
 const generateNodes = () => {
   const communities = [
-    { color: "#ff69b4", count: 15, centerX: 250, centerY: 250 }, // Pink community
-    { color: "#4da6ff", count: 12, centerX: 500, centerY: 200 }, // Blue community
-    { color: "#32cd32", count: 10, centerX: 300, centerY: 400 }, // Green community
-    { color: "#ffa500", count: 8, centerX: 600, centerY: 400 }, // Orange community
-    { color: "#9370db", count: 10, centerX: 150, centerY: 150 }, // Purple community
+    { color: "#E41A1C", count: 20 }, // Red community
+    { color: "#377EB8", count: 25 }, // Blue community
+    { color: "#4DAF4A", count: 15 }, // Green community
+    { color: "#984EA3", count: 18 }, // Purple community
+    { color: "#FF7F00", count: 22 }, // Orange community
   ];
 
   const nodes: Node[] = [];
   let nodeId = 1;
 
+  // Calculate initial positions using a rough circular layout
   communities.forEach((community, communityIndex) => {
-    // Create central node for the community
-    const centralNode = {
-      id: `${nodeId}`,
-      data: { 
-        label: `Community ${communityIndex + 1}`,
-      },
-      position: { x: community.centerX, y: community.centerY },
-      style: {
-        background: community.color,
-        width: 80,
-        height: 80,
-        borderRadius: '50%',
-        border: 'none',
-        opacity: 0.9,
-      },
-    };
-    nodes.push(centralNode);
-    nodeId++;
+    const angleStep = (2 * Math.PI) / communities.length;
+    const communityAngle = angleStep * communityIndex;
+    const communityRadius = 300;
+    const centerX = 400 + communityRadius * Math.cos(communityAngle);
+    const centerY = 300 + communityRadius * Math.sin(communityAngle);
 
-    // Create satellite nodes
     for (let i = 0; i < community.count; i++) {
       const angle = (2 * Math.PI * i) / community.count;
-      const radius = 100;
-      const x = community.centerX + radius * Math.cos(angle);
-      const y = community.centerY + radius * Math.sin(angle);
+      const radius = 100 + Math.random() * 50;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      
+      const nodeSize = Math.random() * 20 + 20; // Variable node sizes
 
       nodes.push({
         id: `${nodeId}`,
         data: { 
           label: `Node ${nodeId}`,
+          community: communityIndex,
         },
         position: { x, y },
         style: {
           background: community.color,
-          width: 40,
-          height: 40,
+          width: nodeSize,
+          height: nodeSize,
           borderRadius: '50%',
           border: 'none',
-          opacity: 0.7,
+          opacity: 0.8,
         },
       });
       nodeId++;
@@ -76,28 +66,37 @@ const generateNodes = () => {
   return nodes;
 };
 
-// Generate edges between nodes
+// Generate edges with community-based connections
 const generateEdges = (nodes: Node[]) => {
   const edges: Edge[] = [];
   let edgeId = 1;
 
-  nodes.forEach((source, sourceIndex) => {
-    // Connect to nodes in the same community
-    const communitySize = sourceIndex % 5 === 0 ? 15 : 5;
-    for (let i = sourceIndex + 1; i < sourceIndex + communitySize && i < nodes.length; i++) {
-      if (Math.random() > 0.3) { // 70% chance to create an edge
-        edges.push({
-          id: `e${edgeId}`,
-          source: source.id,
-          target: nodes[i].id,
-          style: { 
-            stroke: source.style?.background as string,
-            opacity: 0.3,
-          },
-        });
-        edgeId++;
+  // Create community-based connections
+  nodes.forEach((source) => {
+    nodes.forEach((target) => {
+      if (source.id !== target.id) {
+        const sourceCommunity = source.data.community;
+        const targetCommunity = target.data.community;
+        
+        // Higher probability for intra-community edges
+        const probability = sourceCommunity === targetCommunity ? 0.3 : 0.05;
+        
+        if (Math.random() < probability) {
+          const opacity = sourceCommunity === targetCommunity ? 0.2 : 0.1;
+          edges.push({
+            id: `e${edgeId}`,
+            source: source.id,
+            target: target.id,
+            style: { 
+              stroke: source.style?.background as string,
+              opacity,
+              strokeWidth: 1,
+            },
+          });
+          edgeId++;
+        }
       }
-    }
+    });
   });
 
   return edges;
@@ -128,7 +127,7 @@ const NetworkGraph = () => {
         minZoom={0.2}
         maxZoom={4}
         defaultEdgeOptions={{
-          type: 'smoothstep',
+          type: 'default', // Using straight lines instead of curves
           animated: false,
         }}
       >
