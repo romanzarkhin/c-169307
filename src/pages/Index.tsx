@@ -11,6 +11,7 @@ import {
   Calendar,
   MessageCircle,
 } from "lucide-react";
+import NetworkGraph from "@/components/NetworkGraph";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,19 +72,7 @@ const Index = () => {
           {/* Main Network View */}
           <div className="col-span-9">
             <Card className="p-4 h-[calc(100vh-12rem)]">
-              <div className="bg-accent/10 rounded-lg h-full flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <NetworkIcon className="h-12 w-12 text-muted-foreground mx-auto" />
-                  <h3 className="text-lg font-medium">Network Visualization</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Add stakeholders to start mapping relationships
-                  </p>
-                  <Button className="mt-4">
-                    <Users className="mr-2 h-4 w-4" />
-                    Add Stakeholder
-                  </Button>
-                </div>
-              </div>
+              <NetworkGraph />
             </Card>
           </div>
         </div>
