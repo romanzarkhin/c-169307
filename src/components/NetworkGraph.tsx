@@ -14,6 +14,17 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+// Define interfaces for our custom node data
+interface NodeData {
+  label: string;
+  community: number;
+  influence?: number;
+  isCentral?: boolean;
+}
+
+// Type for our custom node with the correct data type
+type CustomNode = Node<NodeData>;
+
 // Generate nodes with improved force-directed positioning
 const generateNodes = () => {
   const communities = [
@@ -25,14 +36,14 @@ const generateNodes = () => {
     { color: "#FFFF33", count: 15, name: "Community F" }, // Yellow community
   ];
 
-  const nodes: Node[] = [];
+  const nodes: CustomNode[] = [];
   let nodeId = 1;
 
   // Calculate positions using an improved circular layout with community clustering
   communities.forEach((community, communityIndex) => {
     const angleStep = (2 * Math.PI) / communities.length;
     const communityAngle = angleStep * communityIndex;
-    const communityRadius = 400; // Increased spacing between communities
+    const communityRadius = 400;
     const centerX = 500 + communityRadius * Math.cos(communityAngle);
     const centerY = 400 + communityRadius * Math.sin(communityAngle);
 
@@ -61,12 +72,12 @@ const generateNodes = () => {
     // Add satellite nodes
     for (let i = 0; i < community.count; i++) {
       const angle = (2 * Math.PI * i) / community.count;
-      const radius = 120 + Math.random() * 80; // Variable distance from center
+      const radius = 120 + Math.random() * 80;
       const x = centerX + radius * Math.cos(angle);
       const y = centerY + radius * Math.sin(angle);
       
-      const nodeSize = Math.random() * 15 + 20; // Variable node sizes
-      const influence = Math.random(); // Node influence factor
+      const nodeSize = Math.random() * 15 + 20;
+      const influence = Math.random();
 
       nodes.push({
         id: `${nodeId}`,
@@ -82,7 +93,7 @@ const generateNodes = () => {
           height: nodeSize,
           borderRadius: '50%',
           border: '1px solid rgba(255, 255, 255, 0.15)',
-          opacity: 0.7 + (influence * 0.3), // Opacity based on influence
+          opacity: 0.7 + (influence * 0.3), // Now TypeScript knows influence is a number
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
         },
       });
@@ -94,7 +105,7 @@ const generateNodes = () => {
 };
 
 // Generate edges with improved community-based connections
-const generateEdges = (nodes: Node[]) => {
+const generateEdges = (nodes: CustomNode[]) => {
   const edges: Edge[] = [];
   let edgeId = 1;
 
@@ -104,7 +115,6 @@ const generateEdges = (nodes: Node[]) => {
         const sourceCommunity = source.data.community;
         const targetCommunity = target.data.community;
         
-        // Higher probability for intra-community edges and connections to central nodes
         let probability = sourceCommunity === targetCommunity ? 0.35 : 0.03;
         if (source.data.isCentral || target.data.isCentral) {
           probability *= 1.5;
