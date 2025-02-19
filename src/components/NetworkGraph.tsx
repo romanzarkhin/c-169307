@@ -15,7 +15,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 // Define interfaces for our custom node data
-interface NodeData {
+interface NodeData extends Record<string, unknown> {
   label: string;
   community: number;
   influence?: number;
@@ -93,7 +93,7 @@ const generateNodes = () => {
           height: nodeSize,
           borderRadius: '50%',
           border: '1px solid rgba(255, 255, 255, 0.15)',
-          opacity: 0.7 + (influence * 0.3), // Now TypeScript knows influence is a number
+          opacity: 0.7 + (influence * 0.3),
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
         },
       });
@@ -149,7 +149,7 @@ const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
 
 const NetworkGraph = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(
