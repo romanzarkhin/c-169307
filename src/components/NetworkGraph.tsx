@@ -55,10 +55,8 @@ const NetworkGraph = () => {
       <NetworkDataSidebar nodes={nodes} edges={edges} />
       <div className="flex-1 flex flex-col">
         <div className="flex flex-wrap gap-2 p-4">
-          <SidebarTrigger>
-            <Button variant="outline" className="flex items-center gap-2">
-              Toggle Data Panel
-            </Button>
+          <SidebarTrigger asChild>
+            <Button variant="outline">Toggle Data Panel</Button>
           </SidebarTrigger>
           {communities.map((community, index) => (
             <Button
