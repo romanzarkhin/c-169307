@@ -12,7 +12,13 @@ import {
   MessageCircle,
 } from "lucide-react";
 import NetworkGraph from "@/components/NetworkGraph";
+import { communities } from "@/constants/network";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { NetworkDataSidebar } from "@/components/NetworkDataSidebar";
+import { generateNodes, generateEdges } from "@/utils/network";
+
+const initialNodes = generateNodes();
+const initialEdges = generateEdges(initialNodes);
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,7 +56,11 @@ const Index = () => {
           <div className="grid grid-cols-12 gap-6">
             {/* Sidebar */}
             <div className="col-span-3">
-              <Card className="p-4">
+              <Card className="p-4 space-y-6">
+                {/* Network Data Section */}
+                <NetworkDataSidebar nodes={initialNodes} edges={initialEdges} />
+                
+                {/* Stakeholders Section */}
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold">Stakeholders</h2>
                   <div className="space-y-2">

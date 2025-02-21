@@ -11,8 +11,6 @@ import {
   Connection,
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { NetworkDataSidebar } from "@/components/NetworkDataSidebar";
 import { communities } from "@/constants/network";
 import { generateNodes, generateEdges } from "@/utils/network";
 import { CustomNode } from "@/types/network";
@@ -52,12 +50,8 @@ const NetworkGraph = () => {
 
   return (
     <div className="flex w-full h-full">
-      <NetworkDataSidebar nodes={nodes} edges={edges} />
       <div className="flex-1 flex flex-col">
         <div className="flex flex-wrap gap-2 p-4">
-          <SidebarTrigger asChild>
-            <Button variant="outline">Toggle Data Panel</Button>
-          </SidebarTrigger>
           {communities.map((community, index) => (
             <Button
               key={index}
