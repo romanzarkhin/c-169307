@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useLayoutEffect } from "react";
 import {
   ReactFlow,
@@ -12,6 +11,7 @@ import {
   Edge,
   Connection,
 } from "@xyflow/react";
+import { Button } from "@/components/ui/button";
 import "@xyflow/react/dist/style.css";
 
 // Define interfaces for our custom node data
@@ -22,20 +22,19 @@ interface NodeData extends Record<string, unknown> {
   isCentral?: boolean;
 }
 
-// Type for our custom node with the correct data type
 type CustomNode = Node<NodeData>;
+
+const communities = [
+  { color: "#E41A1C", count: 25, name: "Community A" },
+  { color: "#377EB8", count: 30, name: "Community B" },
+  { color: "#4DAF4A", count: 20, name: "Community C" },
+  { color: "#984EA3", count: 22, name: "Community D" },
+  { color: "#FF7F00", count: 28, name: "Community E" },
+  { color: "#FFFF33", count: 15, name: "Community F" },
+];
 
 // Generate nodes with improved force-directed positioning
 const generateNodes = () => {
-  const communities = [
-    { color: "#E41A1C", count: 25, name: "Community A" }, // Red community
-    { color: "#377EB8", count: 30, name: "Community B" }, // Blue community
-    { color: "#4DAF4A", count: 20, name: "Community C" }, // Green community
-    { color: "#984EA3", count: 22, name: "Community D" }, // Purple community
-    { color: "#FF7F00", count: 28, name: "Community E" }, // Orange community
-    { color: "#FFFF33", count: 15, name: "Community F" }, // Yellow community
-  ];
-
   const nodes: CustomNode[] = [];
   let nodeId = 1;
 
@@ -151,42 +150,80 @@ const initialEdges = generateEdges(initialNodes);
 const NetworkGraph = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [selectedCommunities, setSelectedCommunities] = useState<Set<number>>(new Set());
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
+  const toggleCommunity = (communityIndex: number) => {
+    setSelectedCommunities(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(communityIndex)) {
+        newSet.delete(communityIndex);
+      } else {
+        newSet.add(communityIndex);
+      }
+      return newSet;
+    });
+
+    setNodes(currentNodes => 
+      currentNodes.map(node => ({
+        ...node,
+        hidden: selectedCommunities.size > 0 && !selectedCommunities.has(node.data.community)
+      }))
+    );
+  };
+
   return (
-    <div className="w-full h-full">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        fitView
-        className="bg-background"
-        minZoom={0.2}
-        maxZoom={4}
-        defaultEdgeOptions={{
-          type: 'default',
-          animated: false,
-        }}
-        nodesDraggable={true}
-        nodesConnectable={true}
-      >
-        <Controls />
-        <MiniMap 
-          nodeColor={(node) => {
-            return node.style?.background as string || '#eee';
+    <div className="flex flex-col w-full h-full gap-4">
+      <div className="flex flex-wrap gap-2 p-4">
+        {communities.map((community, index) => (
+          <Button
+            key={index}
+            onClick={() => toggleCommunity(index)}
+            variant={selectedCommunities.has(index) ? "default" : "outline"}
+            className="flex items-center gap-2"
+          >
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: community.color }}
+            />
+            {community.name}
+          </Button>
+        ))}
+      </div>
+      <div className="flex-1">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          fitView
+          className="bg-background"
+          minZoom={0.2}
+          maxZoom={4}
+          defaultEdgeOptions={{
+            type: 'default',
+            animated: false,
           }}
-          nodeStrokeWidth={3}
-          zoomable
-          pannable
-        />
-        <Background gap={12} size={1} />
-      </ReactFlow>
+          nodesDraggable={true}
+          nodesConnectable={true}
+        >
+          <Controls />
+          <MiniMap 
+            nodeColor={(node) => {
+              return node.style?.background as string || '#eee';
+            }}
+            nodeStrokeWidth={3}
+            zoomable
+            pannable
+          />
+          <Background gap={12} size={1} />
+        </ReactFlow>
+      </div>
     </div>
   );
 };
