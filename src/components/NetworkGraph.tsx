@@ -1,4 +1,4 @@
-import { useState, useCallback, useLayoutEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -12,9 +12,16 @@ import {
   Connection,
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import "@xyflow/react/dist/style.css";
 
-// Define interfaces for our custom node data
 interface NodeData extends Record<string, unknown> {
   label: string;
   community: number;
@@ -33,12 +40,10 @@ const communities = [
   { color: "#FFFF33", count: 15, name: "Community F" },
 ];
 
-// Generate nodes with improved force-directed positioning
 const generateNodes = () => {
   const nodes: CustomNode[] = [];
   let nodeId = 1;
 
-  // Calculate positions using an improved circular layout with community clustering
   communities.forEach((community, communityIndex) => {
     const angleStep = (2 * Math.PI) / communities.length;
     const communityAngle = angleStep * communityIndex;
@@ -46,8 +51,6 @@ const generateNodes = () => {
     const centerX = 500 + communityRadius * Math.cos(communityAngle);
     const centerY = 400 + communityRadius * Math.sin(communityAngle);
 
-    // Add central community node
-    const centralNodeSize = 60;
     nodes.push({
       id: `${nodeId}`,
       data: { 
@@ -58,8 +61,8 @@ const generateNodes = () => {
       position: { x: centerX, y: centerY },
       style: {
         background: community.color,
-        width: centralNodeSize,
-        height: centralNodeSize,
+        width: 60,
+        height: 60,
         borderRadius: '50%',
         border: '2px solid rgba(255, 255, 255, 0.2)',
         opacity: 0.9,
@@ -68,7 +71,6 @@ const generateNodes = () => {
     });
     nodeId++;
 
-    // Add satellite nodes
     for (let i = 0; i < community.count; i++) {
       const angle = (2 * Math.PI * i) / community.count;
       const radius = 120 + Math.random() * 80;
@@ -103,7 +105,6 @@ const generateNodes = () => {
   return nodes;
 };
 
-// Generate edges with improved community-based connections
 const generateEdges = (nodes: CustomNode[]) => {
   const edges: Edge[] = [];
   let edgeId = 1;
@@ -147,6 +148,84 @@ const generateEdges = (nodes: CustomNode[]) => {
 const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
 
+const NetworkDataSidebar = ({ nodes, edges }: { nodes: CustomNode[], edges: Edge[] }) => {
+  const communityStats = communities.map((community, index) => {
+    const communityNodes = nodes.filter(node => node.data.community === index);
+    const communityEdges = edges.filter(edge => {
+      const sourceNode = nodes.find(n => n.id === edge.source);
+      return sourceNode && sourceNode.data.community === index;
+    });
+
+    return {
+      name: community.name,
+      color: community.color,
+      nodeCount: communityNodes.length,
+      edgeCount: communityEdges.length,
+      centralNode: communityNodes.find(node => node.data.isCentral)?.data.label,
+    };
+  });
+
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <h2 className="text-lg font-semibold px-4 py-2">Network Data</h2>
+      </SidebarHeader>
+      <SidebarContent>
+        <div className="space-y-4 p-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Overview</h3>
+            <Card className="p-4 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm">Total Nodes</span>
+                <span className="font-medium">{nodes.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Total Edges</span>
+                <span className="font-medium">{edges.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Communities</span>
+                <span className="font-medium">{communities.length}</span>
+              </div>
+            </Card>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Communities</h3>
+            <div className="space-y-2">
+              {communityStats.map((stat, index) => (
+                <Card key={index} className="p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: stat.color }}
+                    />
+                    <span className="font-medium">{stat.name}</span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Nodes</span>
+                      <span>{stat.nodeCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Edges</span>
+                      <span>{stat.edgeCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Central Node</span>
+                      <span>{stat.centralNode}</span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </SidebarContent>
+    </Sidebar>
+  );
+};
+
 const NetworkGraph = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -177,54 +256,64 @@ const NetworkGraph = () => {
   };
 
   return (
-    <div className="flex flex-col w-full h-full gap-4">
-      <div className="flex flex-wrap gap-2 p-4">
-        {communities.map((community, index) => (
-          <Button
-            key={index}
-            onClick={() => toggleCommunity(index)}
-            variant={selectedCommunities.has(index) ? "default" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: community.color }}
-            />
-            {community.name}
-          </Button>
-        ))}
+    <SidebarProvider>
+      <div className="flex w-full h-full">
+        <NetworkDataSidebar nodes={nodes} edges={edges} />
+        <div className="flex-1 flex flex-col">
+          <div className="flex flex-wrap gap-2 p-4">
+            <SidebarTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                Toggle Data Panel
+              </Button>
+            </SidebarTrigger>
+            {communities.map((community, index) => (
+              <Button
+                key={index}
+                onClick={() => toggleCommunity(index)}
+                variant={selectedCommunities.has(index) ? "default" : "outline"}
+                className="flex items-center gap-2"
+              >
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: community.color }}
+                />
+                {community.name}
+              </Button>
+            ))}
+          </div>
+          <div className="flex-1">
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              fitView
+              className="bg-background"
+              minZoom={0.2}
+              maxZoom={4}
+              defaultEdgeOptions={{
+                type: 'default',
+                animated: false,
+              }}
+              nodesDraggable={true}
+              nodesConnectable={true}
+            >
+              <Controls />
+              <MiniMap 
+                nodeColor={(node) => {
+                  return node.style?.background as string || '#eee';
+                }}
+                nodeStrokeWidth={3}
+                zoomable
+                pannable
+              />
+              <Background gap={12} size={1} />
+            </ReactFlow>
+          </div>
+        </div>
       </div>
-      <div className="flex-1">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-          className="bg-background"
-          minZoom={0.2}
-          maxZoom={4}
-          defaultEdgeOptions={{
-            type: 'default',
-            animated: false,
-          }}
-          nodesDraggable={true}
-          nodesConnectable={true}
-        >
-          <Controls />
-          <MiniMap 
-            nodeColor={(node) => {
-              return node.style?.background as string || '#eee';
-            }}
-            nodeStrokeWidth={3}
-            zoomable
-            pannable
-          />
-          <Background gap={12} size={1} />
-        </ReactFlow>
-      </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
