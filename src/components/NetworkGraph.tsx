@@ -149,7 +149,7 @@ const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
 
 const NetworkGraph = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(
