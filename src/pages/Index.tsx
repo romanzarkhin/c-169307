@@ -12,6 +12,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import NetworkGraph from "@/components/NetworkGraph";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +72,7 @@ const Index = () => {
 
           {/* Main Network View */}
           <div className="col-span-9">
-            <Card className="p-4 h-[calc(100vh-12rem)]">
+            <Card className="h-[calc(100vh-12rem)]">
               <NetworkGraph />
             </Card>
           </div>
