@@ -29,7 +29,7 @@ const Index = () => {
     <SidebarProvider>
       <div className="min-h-screen bg-background w-full flex">
         {/* Left Sidebar - Network Data & Controls */}
-        <Sidebar variant="static" className="w-80 border-r">
+        <Sidebar variant="sidebar" className="w-80 border-r">
           <SidebarHeader className="border-b px-6 py-3">
             <div className="flex items-center gap-2">
               <NetworkIcon className="h-6 w-6 text-primary" />
