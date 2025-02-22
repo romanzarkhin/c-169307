@@ -32,7 +32,7 @@ export function NetworkDataSidebar({ nodes, edges }: NetworkDataSidebarProps) {
   });
 
   return (
-    <Sidebar>
+    <Sidebar className="border rounded-lg">
       <SidebarHeader>
         <h2 className="text-lg font-semibold px-4 py-2">Network Data</h2>
       </SidebarHeader>
