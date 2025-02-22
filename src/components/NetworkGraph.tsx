@@ -66,7 +66,7 @@ const NetworkGraph = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedCommunities, setSelectedCommunities] = useState<Set<number>>(new Set());
   const [zoomLevel, setZoomLevel] = useState<number[]>([1]);
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, setViewport } = useReactFlow();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -100,10 +100,10 @@ const NetworkGraph = () => {
 
   const handleZoomChange = (values: number[]) => {
     setZoomLevel(values);
-    const flow = document.querySelector('.react-flow__viewport');
-    if (flow) {
-      flow.style.transform = `scale(${values[0]})`;
-    }
+    setViewport((viewport) => ({
+      ...viewport,
+      zoom: values[0],
+    }));
   };
 
   return (

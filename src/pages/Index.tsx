@@ -16,6 +16,7 @@ import { communities } from "@/constants/network";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { NetworkDataSidebar } from "@/components/NetworkDataSidebar";
 import { generateNodes, generateEdges } from "@/utils/network";
+import { ReactFlowProvider } from "@xyflow/react";
 
 const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
@@ -84,7 +85,9 @@ const Index = () => {
             {/* Main Network View */}
             <div className="col-span-9">
               <Card className="h-[calc(100vh-12rem)]">
-                <NetworkGraph />
+                <ReactFlowProvider>
+                  <NetworkGraph />
+                </ReactFlowProvider>
               </Card>
             </div>
           </div>
