@@ -10,6 +10,10 @@ import {
   NetworkIcon,
   Calendar,
   MessageCircle,
+  Plus,
+  Link as LinkIcon,
+  Settings,
+  Trash2,
 } from "lucide-react";
 import NetworkGraph from "@/components/NetworkGraph";
 import { communities } from "@/constants/network";
@@ -28,8 +32,8 @@ const Index = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background w-full flex">
-        {/* Left Sidebar - Network Data & Controls */}
-        <Sidebar variant="sidebar" className="w-80 border-r">
+        {/* Left Sidebar - Network Controls */}
+        <Sidebar variant="sidebar" className="w-64 border-r">
           <SidebarHeader className="border-b px-6 py-3">
             <div className="flex items-center gap-2">
               <NetworkIcon className="h-6 w-6 text-primary" />
@@ -43,7 +47,7 @@ const Index = () => {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search stakeholders..."
+                  placeholder="Search nodes..."
                   className="pl-8 w-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -53,9 +57,25 @@ const Index = () => {
             
             <Separator />
             
-            {/* Network Data Section */}
-            <div className="px-4 py-2">
-              <NetworkDataSidebar nodes={initialNodes} edges={initialEdges} />
+            {/* Network Controls */}
+            <div className="px-4 py-4 space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">Network Controls</h3>
+              <Button variant="outline" className="w-full justify-start" size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Node
+              </Button>
+              <Button variant="outline" className="w-full justify-start" size="sm">
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Create Link
+              </Button>
+              <Button variant="outline" className="w-full justify-start" size="sm">
+                <Settings className="mr-2 h-4 w-4" />
+                Edit Node
+              </Button>
+              <Button variant="outline" className="w-full justify-start text-destructive" size="sm">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Selection
+              </Button>
             </div>
             
             <Separator />
@@ -91,12 +111,19 @@ const Index = () => {
           </div>
 
           {/* Graph Area */}
-          <div className="flex-1 p-6">
-            <Card className="h-full">
-              <ReactFlowProvider>
-                <NetworkGraph />
-              </ReactFlowProvider>
-            </Card>
+          <div className="flex-1 flex">
+            <div className="flex-1 p-6">
+              <Card className="h-full">
+                <ReactFlowProvider>
+                  <NetworkGraph />
+                </ReactFlowProvider>
+              </Card>
+            </div>
+
+            {/* Right Sidebar - Network Data */}
+            <div className="w-80 border-l p-4 overflow-y-auto">
+              <NetworkDataSidebar nodes={initialNodes} edges={initialEdges} />
+            </div>
           </div>
         </div>
       </div>
