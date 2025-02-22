@@ -11,6 +11,7 @@ import {
   Connection,
   Panel,
   useReactFlow,
+  Viewport,
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,7 +67,7 @@ const NetworkGraph = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedCommunities, setSelectedCommunities] = useState<Set<number>>(new Set());
   const [zoomLevel, setZoomLevel] = useState<number[]>([1]);
-  const { zoomIn, zoomOut, fitView, setViewport } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, setViewport, getViewport } = useReactFlow();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -100,10 +101,12 @@ const NetworkGraph = () => {
 
   const handleZoomChange = (values: number[]) => {
     setZoomLevel(values);
-    setViewport((viewport) => ({
-      ...viewport,
+    const currentViewport = getViewport();
+    setViewport({
+      x: currentViewport.x,
+      y: currentViewport.y,
       zoom: values[0],
-    }));
+    });
   };
 
   return (
