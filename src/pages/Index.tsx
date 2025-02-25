@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AddNodeDialog } from "@/components/AddNodeDialog";
 import { toast } from "sonner";
+import { CustomNode } from "@/types/network";
 
 const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
