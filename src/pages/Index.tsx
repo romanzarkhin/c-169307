@@ -34,8 +34,8 @@ const Index = () => {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
 
-  const handleAddNode = (nodeData: { name: string; type: string; community: string }) => {
-    const newNode = {
+  const handleAddNode = (nodeData: { name: string; type: string; community: number }) => {
+    const newNode: CustomNode = {
       id: `node-${nodes.length + 1}`,
       type: "default",
       data: {
@@ -44,6 +44,14 @@ const Index = () => {
         community: nodeData.community,
       },
       position: { x: Math.random() * 500, y: Math.random() * 500 },
+      style: {
+        background: communities[nodeData.community].color,
+        width: 30,
+        height: 30,
+        borderRadius: '50%',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        opacity: 0.8,
+      }
     };
     
     setNodes([...nodes, newNode]);

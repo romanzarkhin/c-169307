@@ -22,19 +22,23 @@ import {
 import { communities } from "@/constants/network";
 
 interface AddNodeDialogProps {
-  onAddNode: (node: { name: string; type: string; community: string }) => void;
+  onAddNode: (node: { name: string; type: string; community: number }) => void;
 }
 
 export function AddNodeDialog({ onAddNode }: AddNodeDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [type, setType] = React.useState("");
-  const [community, setCommunity] = React.useState("");
+  const [community, setCommunity] = React.useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && type && community) {
-      onAddNode({ name, type, community });
+      onAddNode({ 
+        name, 
+        type, 
+        community: parseInt(community, 10) 
+      });
       setOpen(false);
       // Reset form
       setName("");
@@ -88,8 +92,8 @@ export function AddNodeDialog({ onAddNode }: AddNodeDialogProps) {
                   <SelectValue placeholder="Select community" />
                 </SelectTrigger>
                 <SelectContent>
-                  {communities.map((community) => (
-                    <SelectItem key={community.id} value={community.id}>
+                  {communities.map((community, index) => (
+                    <SelectItem key={index} value={index.toString()}>
                       {community.name}
                     </SelectItem>
                   ))}
