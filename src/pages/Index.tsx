@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AddNodeDialog } from "@/components/AddNodeDialog";
 import { toast } from "sonner";
 import { CustomNode } from "@/types/network";
+import { Connection, Edge } from "@xyflow/react";
 
 const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
@@ -57,6 +59,22 @@ const Index = () => {
     setNodes([...nodes, newNode]);
     toast.success("Node added successfully");
   };
+
+  const handleEdgesChange = useCallback((newEdges: Edge[]) => {
+    setEdges(newEdges);
+  }, []);
+
+  const handleConnect = useCallback((params: Connection) => {
+    const newEdge: Edge = {
+      id: `edge-${edges.length + 1}`,
+      source: params.source || "",
+      target: params.target || "",
+      type: "smoothstep",
+      animated: true,
+      style: { stroke: "#999", strokeWidth: 2 },
+    };
+    setEdges((eds) => [...eds, newEdge]);
+  }, [edges.length]);
 
   return (
     <SidebarProvider>
@@ -220,14 +238,19 @@ const Index = () => {
             <div className="flex-1 p-4 md:p-6">
               <Card className="h-full">
                 <ReactFlowProvider>
-                  <NetworkGraph />
+                  <NetworkGraph 
+                    nodes={nodes}
+                    edges={edges}
+                    onEdgesChange={handleEdgesChange}
+                    onConnect={handleConnect}
+                  />
                 </ReactFlowProvider>
               </Card>
             </div>
 
             {/* Right Sidebar - Network Data */}
             <div className="border-t lg:border-t-0 lg:border-l w-full lg:w-80 p-4 overflow-y-auto">
-              <NetworkDataSidebar nodes={initialNodes} edges={initialEdges} />
+              <NetworkDataSidebar nodes={nodes} edges={edges} />
             </div>
           </div>
         </div>

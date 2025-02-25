@@ -11,7 +11,7 @@ import {
   Connection,
   Panel,
   useReactFlow,
-  Viewport,
+  Edge,
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,139 +23,46 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { communities } from "@/constants/network";
-import { generateNodes, generateEdges } from "@/utils/network";
-import { CustomNode } from "@/types/network";
-import { ZoomIn, ZoomOut, Maximize2, Grid2X2, Filter } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
+import { toast } from "sonner";
+import { CustomNode } from "@/types/network";
 
-const initialNodes = generateNodes();
-const initialEdges = generateEdges(initialNodes);
+interface NetworkGraphProps {
+  nodes: CustomNode[];
+  edges: Edge[];
+  onEdgesChange: (edges: Edge[]) => void;
+  onConnect: (connection: Connection) => void;
+}
 
-const layouts = {
-  horizontal: (nodes: CustomNode[]) => {
-    return nodes.map((node) => ({
-      ...node,
-      position: {
-        x: node.position.x * 1.5,
-        y: node.position.y,
-      },
-    }));
-  },
-  vertical: (nodes: CustomNode[]) => {
-    return nodes.map((node) => ({
-      ...node,
-      position: {
-        x: node.position.x,
-        y: node.position.y * 1.5,
-      },
-    }));
-  },
-  grid: (nodes: CustomNode[]) => {
-    const spacing = 150;
-    return nodes.map((node, index) => ({
-      ...node,
-      position: {
-        x: (index % 5) * spacing + 100,
-        y: Math.floor(index / 5) * spacing + 100,
-      },
-    }));
-  },
-};
-
-const NetworkGraph = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [selectedCommunities, setSelectedCommunities] = useState<Set<number>>(new Set());
+const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphProps) => {
   const [zoomLevel, setZoomLevel] = useState<number[]>([1]);
-  const { zoomIn, zoomOut, fitView, setViewport, getViewport } = useReactFlow();
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
 
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+  const handleConnect = useCallback(
+    (params: Connection) => {
+      onConnect(params);
+      toast.success("Connection created successfully");
+    },
+    [onConnect]
   );
-
-  const handleLayoutChange = (layout: keyof typeof layouts) => {
-    const layoutFunction = layouts[layout];
-    setNodes((nds) => layoutFunction(nds));
-    setTimeout(() => fitView(), 50);
-  };
-
-  const toggleCommunity = (communityIndex: number) => {
-    setSelectedCommunities(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(communityIndex)) {
-        newSet.delete(communityIndex);
-      } else {
-        newSet.add(communityIndex);
-      }
-      return newSet;
-    });
-
-    setNodes(currentNodes => 
-      currentNodes.map(node => ({
-        ...node,
-        hidden: selectedCommunities.size > 0 && !selectedCommunities.has(node.data.community)
-      }))
-    );
-  };
-
-  const handleZoomChange = (values: number[]) => {
-    setZoomLevel(values);
-    const currentViewport = getViewport();
-    setViewport({
-      x: currentViewport.x,
-      y: currentViewport.y,
-      zoom: values[0],
-    });
-  };
 
   return (
     <div className="flex w-full h-full">
       <div className="flex-1 flex flex-col">
-        <div className="flex flex-wrap gap-2 p-4 items-center justify-between border-b">
-          <div className="flex flex-wrap gap-2">
-            {communities.map((community, index) => (
-              <Button
-                key={index}
-                onClick={() => toggleCommunity(index)}
-                variant={selectedCommunities.has(index) ? "default" : "outline"}
-                className="flex items-center gap-2"
-              >
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: community.color }}
-                />
-                {community.name}
-              </Button>
-            ))}
-          </div>
-          <div className="flex items-center gap-4">
-            <Select onValueChange={handleLayoutChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select layout" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="horizontal">Horizontal Layout</SelectItem>
-                <SelectItem value="vertical">Vertical Layout</SelectItem>
-                <SelectItem value="grid">Grid Layout</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         <div className="flex-1 relative">
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
+            onConnect={handleConnect}
             fitView
             className="bg-background"
             minZoom={0.2}
             maxZoom={4}
             defaultEdgeOptions={{
-              type: 'default',
-              animated: false,
+              type: "smoothstep",
+              style: { stroke: "#999", strokeWidth: 2 },
+              animated: true,
             }}
             nodesDraggable={true}
             nodesConnectable={true}
@@ -201,7 +108,7 @@ const NetworkGraph = () => {
                 <ZoomOut className="h-4 w-4" />
                 <Slider
                   value={zoomLevel}
-                  onValueChange={handleZoomChange}
+                  onValueChange={setZoomLevel}
                   max={4}
                   min={0.2}
                   step={0.1}
