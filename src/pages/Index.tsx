@@ -10,7 +10,6 @@ import {
   NetworkIcon,
   Calendar,
   MessageCircle,
-  Plus,
   Link as LinkIcon,
   Settings,
   Trash2,
@@ -24,12 +23,32 @@ import { generateNodes, generateEdges } from "@/utils/network";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AddNodeDialog } from "@/components/AddNodeDialog";
+import { toast } from "sonner";
 
 const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [nodes, setNodes] = useState(initialNodes);
+  const [edges, setEdges] = useState(initialEdges);
+
+  const handleAddNode = (nodeData: { name: string; type: string; community: string }) => {
+    const newNode = {
+      id: `node-${nodes.length + 1}`,
+      type: "default",
+      data: {
+        label: nodeData.name,
+        type: nodeData.type,
+        community: nodeData.community,
+      },
+      position: { x: Math.random() * 500, y: Math.random() * 500 },
+    };
+    
+    setNodes([...nodes, newNode]);
+    toast.success("Node added successfully");
+  };
 
   return (
     <SidebarProvider>
@@ -62,10 +81,7 @@ const Index = () => {
             {/* Network Controls */}
             <div className="px-4 py-4 space-y-2">
               <h3 className="text-sm font-medium text-muted-foreground mb-3">Network Controls</h3>
-              <Button variant="outline" className="w-full justify-start" size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Node
-              </Button>
+              <AddNodeDialog onAddNode={handleAddNode} />
               <Button variant="outline" className="w-full justify-start" size="sm">
                 <LinkIcon className="mr-2 h-4 w-4" />
                 Create Link
@@ -142,10 +158,7 @@ const Index = () => {
                 {/* Mobile Network Controls */}
                 <div className="px-4 py-4 space-y-2">
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Network Controls</h3>
-                  <Button variant="outline" className="w-full justify-start" size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Node
-                  </Button>
+                  <AddNodeDialog onAddNode={handleAddNode} />
                   <Button variant="outline" className="w-full justify-start" size="sm">
                     <LinkIcon className="mr-2 h-4 w-4" />
                     Create Link
