@@ -30,7 +30,7 @@ interface NetworkGraphProps {
   nodes: CustomNode[];
   edges: Edge[];
   onEdgesChange: (edges: Edge[]) => void;
-  onConnect: (connection: Connection) => void;
+  onConnect: (connection: Connection | Edge) => void;
   onNodeClick?: NodeMouseHandler<CustomNode>;
 }
 

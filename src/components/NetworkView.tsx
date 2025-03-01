@@ -5,7 +5,7 @@ import NetworkGraph from "@/components/NetworkGraph";
 import { NetworkDataSidebar } from "@/components/NetworkDataSidebar";
 import { NetworkFilter } from "@/components/NetworkFilter";
 import { CustomNode } from "@/types/network";
-import { Connection, Edge } from "@xyflow/react";
+import { Connection, Edge, NodeMouseHandler } from "@xyflow/react";
 import { useState } from "react";
 
 interface NetworkViewProps {
@@ -29,7 +29,8 @@ export const NetworkView = ({
 }: NetworkViewProps) => {
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
 
-  const handleNodeClick = (node: CustomNode) => {
+  // Updated to match NodeMouseHandler signature with correct event parameter
+  const handleNodeClick: NodeMouseHandler<CustomNode> = (_, node) => {
     setSelectedNode(node);
   };
 
@@ -105,7 +106,7 @@ const NodeDetailPanel = ({ node, onClose }: NodeDetailPanelProps) => {
       
       <div className="space-y-2 pt-2">
         <DetailItem label="Community" value={`Community ${node.data.community}`} />
-        <DetailItem label="Type" value={node.data.type || "Default"} />
+        <DetailItem label="Type" value={node.data.type?.toString() || "Default"} />
         {node.data.influence !== undefined && (
           <DetailItem label="Influence" value={node.data.influence.toString()} />
         )}
