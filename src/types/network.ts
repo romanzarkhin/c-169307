@@ -6,6 +6,7 @@ export interface NodeData extends Record<string, unknown> {
   community: number;
   influence?: number;
   isCentral?: boolean;
+  type?: string | number;
 }
 
 export type CustomNode = Node<NodeData>;
