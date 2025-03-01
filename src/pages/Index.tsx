@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { NetworkView } from "@/components/NetworkView";
 import { generateNodes, generateEdges } from "@/utils/network";
@@ -14,6 +14,29 @@ const initialEdges = generateEdges(initialNodes);
 const Index = () => {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
+  const [selectedCommunities, setSelectedCommunities] = useState<number[]>(
+    communities.map((_, index) => index)
+  );
+
+  // Filter nodes based on selected communities
+  const filteredNodes = useMemo(() => {
+    if (selectedCommunities.length === communities.length) {
+      return nodes; // Return all nodes when all communities are selected
+    }
+    
+    return nodes.filter(node => 
+      selectedCommunities.includes(node.data.community)
+    );
+  }, [nodes, selectedCommunities]);
+
+  // Filter edges to only include connections between visible nodes
+  const filteredEdges = useMemo(() => {
+    const visibleNodeIds = new Set(filteredNodes.map(node => node.id));
+    
+    return edges.filter(edge => 
+      visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
+    );
+  }, [edges, filteredNodes]);
 
   const handleAddNode = (nodeData: { name: string; type: string; community: number }) => {
     const newNode: CustomNode = {
@@ -39,6 +62,10 @@ const Index = () => {
     toast.success("Node added successfully");
   };
 
+  const handleFilterChange = useCallback((newSelectedCommunities: number[]) => {
+    setSelectedCommunities(newSelectedCommunities);
+  }, []);
+
   const handleEdgesChange = useCallback((newEdges: Edge[]) => {
     setEdges(newEdges);
   }, []);
@@ -60,6 +87,9 @@ const Index = () => {
       <NetworkView
         nodes={nodes}
         edges={edges}
+        filteredNodes={filteredNodes}
+        selectedCommunities={selectedCommunities}
+        onFilterChange={handleFilterChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
       />

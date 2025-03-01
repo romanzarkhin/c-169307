@@ -1,30 +1,40 @@
 
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
 import { ReactFlowProvider } from "@xyflow/react";
 import NetworkGraph from "@/components/NetworkGraph";
 import { NetworkDataSidebar } from "@/components/NetworkDataSidebar";
+import { NetworkFilter } from "@/components/NetworkFilter";
 import { CustomNode } from "@/types/network";
 import { Connection, Edge } from "@xyflow/react";
 
 interface NetworkViewProps {
   nodes: CustomNode[];
   edges: Edge[];
+  filteredNodes: CustomNode[];
+  selectedCommunities: number[];
+  onFilterChange: (selectedCommunities: number[]) => void;
   onEdgesChange: (edges: Edge[]) => void;
   onConnect: (connection: Connection) => void;
 }
 
-export const NetworkView = ({ nodes, edges, onEdgesChange, onConnect }: NetworkViewProps) => {
+export const NetworkView = ({ 
+  nodes, 
+  edges, 
+  filteredNodes,
+  selectedCommunities,
+  onFilterChange,
+  onEdgesChange, 
+  onConnect 
+}: NetworkViewProps) => {
   return (
     <div className="flex-1 flex flex-col">
       {/* Top Bar */}
       <div className="border-b px-4 md:px-6 py-3 flex justify-between items-center">
         <h2 className="text-lg font-medium">Network Visualization</h2>
-        <Button variant="outline" size="sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter View
-        </Button>
+        <NetworkFilter 
+          selectedCommunities={selectedCommunities}
+          onFilterChange={onFilterChange}
+        />
       </div>
 
       {/* Graph Area */}
@@ -33,7 +43,7 @@ export const NetworkView = ({ nodes, edges, onEdgesChange, onConnect }: NetworkV
           <Card className="h-full">
             <ReactFlowProvider>
               <NetworkGraph 
-                nodes={nodes}
+                nodes={filteredNodes}
                 edges={edges}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}

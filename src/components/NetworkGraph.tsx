@@ -1,28 +1,17 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   ReactFlow,
   MiniMap,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Connection,
-  Panel,
   useReactFlow,
   Edge,
+  Panel,
+  Connection,
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { communities } from "@/constants/network";
 import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import { toast } from "sonner";
@@ -38,6 +27,19 @@ interface NetworkGraphProps {
 const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphProps) => {
   const [zoomLevel, setZoomLevel] = useState<number[]>([1]);
   const { zoomIn, zoomOut, fitView } = useReactFlow();
+
+  // When filtered nodes change, adjust the view to fit them
+  useEffect(() => {
+    // Only fitView when there are nodes to display
+    if (nodes.length > 0) {
+      // Small delay to ensure the graph has been rendered
+      const timeout = setTimeout(() => {
+        fitView({ padding: 0.2, includeHiddenNodes: false });
+      }, 100);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [nodes, fitView]);
 
   const handleConnect = useCallback(
     (params: Connection) => {
