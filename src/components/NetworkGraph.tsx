@@ -9,6 +9,7 @@ import {
   Edge,
   Panel,
   Connection,
+  NodeMouseHandler,
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -30,6 +31,7 @@ interface NetworkGraphProps {
   edges: Edge[];
   onEdgesChange: (edges: Edge[]) => void;
   onConnect: (connection: Connection) => void;
+  onNodeClick?: NodeMouseHandler<CustomNode>;
 }
 
 // Define the edge types
@@ -37,7 +39,13 @@ const edgeTypes = {
   custom: CustomEdge,
 };
 
-const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphProps) => {
+const NetworkGraph = ({ 
+  nodes, 
+  edges, 
+  onEdgesChange, 
+  onConnect,
+  onNodeClick 
+}: NetworkGraphProps) => {
   const [zoomLevel, setZoomLevel] = useState<number[]>([1]);
   const [edgeType, setEdgeType] = useState<'default' | 'strong' | 'dashed'>('default');
   const { zoomIn, zoomOut, fitView } = useReactFlow();
@@ -75,6 +83,16 @@ const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphPr
     [onConnect, edgeType]
   );
 
+  // Handle node click to select a node
+  const handleNodeClick: NodeMouseHandler<CustomNode> = useCallback(
+    (event, node) => {
+      if (onNodeClick) {
+        onNodeClick(event, node);
+      }
+    },
+    [onNodeClick]
+  );
+
   // Render edges with the custom edge type
   const customizedEdges = useMemo(() => {
     return edges.map(edge => {
@@ -101,6 +119,7 @@ const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphPr
             edges={customizedEdges}
             edgeTypes={edgeTypes}
             onConnect={handleConnect}
+            onNodeClick={handleNodeClick}
             fitView
             className="bg-background"
             minZoom={0.2}
