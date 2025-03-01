@@ -89,15 +89,29 @@ export const generateEdges = (nodes: CustomNode[]) => {
           const targetInfluence = target.data.influence || 0.5;
           const edgeStrength = (sourceInfluence + targetInfluence) / 2;
           
+          // Determine edge type based on connection type
+          let edgeType: 'default' | 'strong' | 'dashed' = 'default';
+          if (isCrossConnection) {
+            edgeType = 'dashed';
+          } else if (source.data.isCentral || target.data.isCentral) {
+            edgeType = 'strong';
+          }
+
           edges.push({
             id: `e${edgeId}`,
             source: source.id,
             target: target.id,
+            type: 'custom',
+            data: {
+              type: edgeType,
+              label: isCrossConnection ? 'Cross-community' : undefined,
+            },
             style: { 
               stroke: isCrossConnection ? '#rgba(160, 160, 160, 0.2)' : source.style?.background as string,
               opacity: isCrossConnection ? 0.15 : 0.25,
               strokeWidth: 1 + edgeStrength * 2,
             },
+            animated: edgeType === 'strong',
           });
           edgeId++;
         }

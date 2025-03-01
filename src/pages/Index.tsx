@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { NetworkView } from "@/components/NetworkView";
@@ -70,23 +69,31 @@ const Index = () => {
     setEdges(newEdges);
   }, []);
 
-  const handleConnect = useCallback((params: Connection) => {
-    const newEdge: Edge = {
-      id: `edge-${edges.length + 1}`,
-      source: params.source || "",
-      target: params.target || "",
-      type: "smoothstep",
-      animated: true,
-      style: { stroke: "#999", strokeWidth: 2 },
-    };
-    setEdges((eds) => [...eds, newEdge]);
-  }, [edges.length]);
+  const handleConnect = useCallback((connection: Connection | Edge) => {
+    // If connection is already an Edge (from our custom implementation), use it directly
+    if ('id' in connection && connection.id) {
+      setEdges((eds) => [...eds, connection as Edge]);
+    } else {
+      // Otherwise, create a basic edge from the connection
+      const params = connection as Connection;
+      const newEdge: Edge = {
+        id: `edge-${Date.now()}`,
+        source: params.source || "",
+        target: params.target || "",
+        type: 'custom',
+        data: {
+          type: 'default',
+        },
+      };
+      setEdges((eds) => [...eds, newEdge]);
+    }
+  }, []);
 
   return (
     <MainLayout>
       <NetworkView
         nodes={nodes}
-        edges={edges}
+        edges={filteredEdges}
         filteredNodes={filteredNodes}
         selectedCommunities={selectedCommunities}
         onFilterChange={handleFilterChange}

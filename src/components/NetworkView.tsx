@@ -14,7 +14,7 @@ interface NetworkViewProps {
   selectedCommunities: number[];
   onFilterChange: (selectedCommunities: number[]) => void;
   onEdgesChange: (edges: Edge[]) => void;
-  onConnect: (connection: Connection) => void;
+  onConnect: (connection: Connection | Edge) => void;
 }
 
 export const NetworkView = ({ 

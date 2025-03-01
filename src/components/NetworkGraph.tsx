@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -13,9 +13,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
+import CustomEdge from "./CustomEdge";
 import "@xyflow/react/dist/style.css";
 import { toast } from "sonner";
 import { CustomNode } from "@/types/network";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface NetworkGraphProps {
   nodes: CustomNode[];
@@ -24,8 +32,14 @@ interface NetworkGraphProps {
   onConnect: (connection: Connection) => void;
 }
 
+// Define the edge types
+const edgeTypes = {
+  custom: CustomEdge,
+};
+
 const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphProps) => {
   const [zoomLevel, setZoomLevel] = useState<number[]>([1]);
+  const [edgeType, setEdgeType] = useState<'default' | 'strong' | 'dashed'>('default');
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   // When filtered nodes change, adjust the view to fit them
@@ -43,11 +57,40 @@ const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphPr
 
   const handleConnect = useCallback(
     (params: Connection) => {
-      onConnect(params);
-      toast.success("Connection created successfully");
+      // Create a new edge with the selected type
+      const newEdge: Edge = {
+        ...params,
+        id: `edge-${Date.now()}`,
+        type: 'custom',
+        data: {
+          type: edgeType,
+          label: `${edgeType} connection`,
+        },
+        animated: edgeType === 'strong',
+      };
+      
+      onConnect(newEdge);
+      toast.success(`${edgeType.charAt(0).toUpperCase() + edgeType.slice(1)} connection created`);
     },
-    [onConnect]
+    [onConnect, edgeType]
   );
+
+  // Render edges with the custom edge type
+  const customizedEdges = useMemo(() => {
+    return edges.map(edge => {
+      if (!edge.type) {
+        return {
+          ...edge,
+          type: 'custom',
+          data: {
+            ...edge.data,
+            type: 'default',
+          }
+        };
+      }
+      return edge;
+    });
+  }, [edges]);
 
   return (
     <div className="flex w-full h-full">
@@ -55,16 +98,15 @@ const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphPr
         <div className="flex-1 relative">
           <ReactFlow
             nodes={nodes}
-            edges={edges}
+            edges={customizedEdges}
+            edgeTypes={edgeTypes}
             onConnect={handleConnect}
             fitView
             className="bg-background"
             minZoom={0.2}
             maxZoom={4}
             defaultEdgeOptions={{
-              type: "smoothstep",
-              style: { stroke: "#999", strokeWidth: 2 },
-              animated: true,
+              type: 'custom',
             }}
             nodesDraggable={true}
             nodesConnectable={true}
@@ -104,6 +146,24 @@ const NetworkGraph = ({ nodes, edges, onEdgesChange, onConnect }: NetworkGraphPr
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
+            </Panel>
+            <Panel position="top-left" className="bg-background/80 p-2 rounded-lg backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium">Edge Type:</span>
+                <Select
+                  value={edgeType}
+                  onValueChange={(value) => setEdgeType(value as 'default' | 'strong' | 'dashed')}
+                >
+                  <SelectTrigger className="w-32 h-8">
+                    <SelectValue placeholder="Edge Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="strong">Strong</SelectItem>
+                    <SelectItem value="dashed">Dashed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </Panel>
             <Panel position="bottom-center" className="bg-background/80 p-4 rounded-t-lg backdrop-blur-sm">
               <div className="flex items-center gap-4">
