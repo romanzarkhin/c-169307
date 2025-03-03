@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { NetworkView } from "@/components/NetworkView";
@@ -7,6 +6,7 @@ import { toast } from "sonner";
 import { CustomNode } from "@/types/network";
 import { Connection, Edge, EdgeChange } from "@xyflow/react";
 import { communities } from "@/constants/network";
+import { LayoutType, applyLayout } from "@/utils/layouts";
 
 const initialNodes = generateNodes();
 const initialEdges = generateEdges(initialNodes);
@@ -198,6 +198,19 @@ const Index = () => {
     }
   }, []);
 
+  const handleApplyLayout = useCallback((layoutType: LayoutType, options: any) => {
+    setNodes(prevNodes => {
+      const newNodes = applyLayout([...prevNodes], layoutType, options);
+      toast.success(`Applied ${layoutType} layout`);
+      return newNodes;
+    });
+  }, []);
+
+  const handleLoadNetwork = useCallback((newNodes: CustomNode[], newEdges: Edge[]) => {
+    setNodes(newNodes);
+    setEdges(newEdges);
+  }, []);
+
   return (
     <MainLayout>
       <NetworkView
@@ -214,6 +227,8 @@ const Index = () => {
         onUpdateNode={handleUpdateNode}
         onDeleteNode={handleDeleteNode}
         onCreateEdge={handleCreateEdge}
+        onApplyLayout={handleApplyLayout}
+        onLoadNetwork={handleLoadNetwork}
       />
     </MainLayout>
   );

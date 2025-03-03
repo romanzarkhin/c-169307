@@ -1,8 +1,11 @@
+
 import { Card } from "@/components/ui/card";
 import { ReactFlowProvider } from "@xyflow/react";
 import NetworkGraph from "@/components/NetworkGraph";
 import { NetworkDataSidebar } from "@/components/NetworkDataSidebar";
 import { NetworkFilter } from "@/components/NetworkFilter";
+import { NetworkLayoutControls, LayoutType } from "@/components/NetworkLayoutControls";
+import { NetworkPersistenceControls } from "@/components/NetworkPersistenceControls";
 import { CustomNode } from "@/types/network";
 import { Connection, Edge, NodeMouseHandler, EdgeChange } from "@xyflow/react";
 import { useState } from "react";
@@ -10,6 +13,7 @@ import { EditNodeDialog } from "@/components/EditNodeDialog";
 import { CreateEdgeDialog } from "@/components/CreateEdgeDialog";
 import { NetworkSidebar } from "./layout/NetworkSidebar";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface NetworkViewProps {
   nodes: CustomNode[];
@@ -25,6 +29,8 @@ interface NetworkViewProps {
   onUpdateNode: (nodeId: string, updates: { name: string; type: string; community: number }) => void;
   onDeleteNode: (nodeId: string) => void;
   onCreateEdge: (sourceId: string, targetId: string, edgeType: string) => void;
+  onApplyLayout: (type: LayoutType, options: any) => void;
+  onLoadNetwork: (nodes: CustomNode[], edges: Edge[]) => void;
 }
 
 export const NetworkView = ({ 
@@ -40,11 +46,14 @@ export const NetworkView = ({
   onAddNode,
   onUpdateNode,
   onDeleteNode,
-  onCreateEdge
+  onCreateEdge,
+  onApplyLayout,
+  onLoadNetwork
 }: NetworkViewProps) => {
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateEdgeDialogOpen, setIsCreateEdgeDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const handleNodeClick: NodeMouseHandler<CustomNode> = (_, node) => {
     setSelectedNode(node);
@@ -104,19 +113,42 @@ export const NetworkView = ({
         </div>
 
         <div className="border-t lg:border-t-0 lg:border-l w-full lg:w-80 p-4 overflow-y-auto">
-          {selectedNode ? (
-            <NodeDetailPanel 
-              node={selectedNode} 
-              onClose={() => setSelectedNode(null)}
-              onEdit={() => setIsEditDialogOpen(true)}
-              onDelete={() => {
-                onDeleteNode(selectedNode.id);
-                setSelectedNode(null);
-              }}
-            />
-          ) : (
-            <NetworkDataSidebar nodes={nodes} edges={edges} />
-          )}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full mb-4">
+              <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+              <TabsTrigger value="tools" className="flex-1">Tools</TabsTrigger>
+              {selectedNode && (
+                <TabsTrigger value="details" className="flex-1">Details</TabsTrigger>
+              )}
+            </TabsList>
+            
+            <TabsContent value="overview">
+              <NetworkDataSidebar nodes={nodes} edges={edges} />
+            </TabsContent>
+            
+            <TabsContent value="tools" className="space-y-6">
+              <NetworkLayoutControls onApplyLayout={onApplyLayout} />
+              <NetworkPersistenceControls
+                nodes={nodes}
+                edges={edges}
+                onLoadNetwork={onLoadNetwork}
+              />
+            </TabsContent>
+            
+            <TabsContent value="details">
+              {selectedNode && (
+                <NodeDetailPanel 
+                  node={selectedNode} 
+                  onClose={() => setSelectedNode(null)}
+                  onEdit={() => setIsEditDialogOpen(true)}
+                  onDelete={() => {
+                    onDeleteNode(selectedNode.id);
+                    setSelectedNode(null);
+                  }}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       
