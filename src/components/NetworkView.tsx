@@ -9,6 +9,7 @@ import { useState } from "react";
 import { EditNodeDialog } from "@/components/EditNodeDialog";
 import { CreateEdgeDialog } from "@/components/CreateEdgeDialog";
 import { NetworkSidebar } from "./layout/NetworkSidebar";
+import { Button } from "@/components/ui/button";
 
 interface NetworkViewProps {
   nodes: CustomNode[];
@@ -45,7 +46,6 @@ export const NetworkView = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateEdgeDialogOpen, setIsCreateEdgeDialogOpen] = useState(false);
 
-  // Updated to match NodeMouseHandler signature with correct event parameter
   const handleNodeClick: NodeMouseHandler<CustomNode> = (_, node) => {
     setSelectedNode(node);
   };
@@ -69,7 +69,6 @@ export const NetworkView = ({
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Top Bar */}
       <div className="border-b px-4 md:px-6 py-3 flex justify-between items-center">
         <h2 className="text-lg font-medium">Network Visualization</h2>
         <NetworkFilter 
@@ -78,9 +77,7 @@ export const NetworkView = ({
         />
       </div>
 
-      {/* Graph Area */}
       <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Left Sidebar - Mobile only */}
         <div className="lg:hidden">
           <NetworkSidebar 
             onAddNode={onAddNode}
@@ -106,7 +103,6 @@ export const NetworkView = ({
           </Card>
         </div>
 
-        {/* Right Sidebar - Network Data and Node Details */}
         <div className="border-t lg:border-t-0 lg:border-l w-full lg:w-80 p-4 overflow-y-auto">
           {selectedNode ? (
             <NodeDetailPanel 
@@ -124,7 +120,6 @@ export const NetworkView = ({
         </div>
       </div>
       
-      {/* Dialogs */}
       <EditNodeDialog 
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
@@ -142,7 +137,6 @@ export const NetworkView = ({
   );
 };
 
-// Node Detail Panel Component
 interface NodeDetailPanelProps {
   node: CustomNode;
   onClose: () => void;

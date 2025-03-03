@@ -3,8 +3,32 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NetworkIcon, Menu } from "lucide-react";
 import { NetworkSidebar } from "./NetworkSidebar";
+import { useState } from "react";
 
 export const MobileNavigation = () => {
+  // Provide empty handlers for required props
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+  
+  const handleAddNode = () => {
+    console.log("Add node clicked in mobile navigation");
+  };
+  
+  const handleCreateEdge = () => {
+    console.log("Create edge clicked in mobile navigation");
+  };
+  
+  const handleEditNode = () => {
+    console.log("Edit node clicked in mobile navigation");
+  };
+  
+  const handleDeleteSelection = () => {
+    console.log("Delete selection clicked in mobile navigation");
+  };
+
   return (
     <Sheet>
       <div className="flex md:hidden items-center justify-between border-b px-4 py-2">
@@ -26,7 +50,14 @@ export const MobileNavigation = () => {
               <h1 className="text-xl font-semibold">CollabGraph</h1>
             </div>
           </div>
-          <NetworkSidebar />
+          <NetworkSidebar 
+            onAddNode={handleAddNode}
+            onCreateEdge={handleCreateEdge}
+            onEditNode={handleEditNode}
+            onDeleteSelection={handleDeleteSelection}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+          />
         </div>
       </SheetContent>
     </Sheet>
