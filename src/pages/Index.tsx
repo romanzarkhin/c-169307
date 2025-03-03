@@ -1,10 +1,11 @@
+
 import { useState, useCallback, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { NetworkView } from "@/components/NetworkView";
 import { generateNodes, generateEdges } from "@/utils/network";
 import { toast } from "sonner";
 import { CustomNode } from "@/types/network";
-import { Connection, Edge } from "@xyflow/react";
+import { Connection, Edge, EdgeChange } from "@xyflow/react";
 import { communities } from "@/constants/network";
 
 const initialNodes = generateNodes();
@@ -65,8 +66,20 @@ const Index = () => {
     setSelectedCommunities(newSelectedCommunities);
   }, []);
 
-  const handleEdgesChange = useCallback((newEdges: Edge[]) => {
-    setEdges(newEdges);
+  const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
+    setEdges((eds) => {
+      // For EdgeRemove changes we need to remove the edge
+      const edgesToRemove = changes
+        .filter(change => change.type === 'remove')
+        .map(change => change.id);
+      
+      if (edgesToRemove.length) {
+        return eds.filter(edge => !edgesToRemove.includes(edge.id));
+      }
+      
+      // For other changes, just return the current edges
+      return eds;
+    });
   }, []);
 
   const handleConnect = useCallback((connection: Connection | Edge) => {

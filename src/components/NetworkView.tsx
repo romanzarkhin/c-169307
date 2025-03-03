@@ -1,11 +1,10 @@
-
 import { Card } from "@/components/ui/card";
 import { ReactFlowProvider } from "@xyflow/react";
 import NetworkGraph from "@/components/NetworkGraph";
 import { NetworkDataSidebar } from "@/components/NetworkDataSidebar";
 import { NetworkFilter } from "@/components/NetworkFilter";
 import { CustomNode } from "@/types/network";
-import { Connection, Edge, NodeMouseHandler } from "@xyflow/react";
+import { Connection, Edge, NodeMouseHandler, EdgeChange } from "@xyflow/react";
 import { useState } from "react";
 
 interface NetworkViewProps {
@@ -14,7 +13,7 @@ interface NetworkViewProps {
   filteredNodes: CustomNode[];
   selectedCommunities: number[];
   onFilterChange: (selectedCommunities: number[]) => void;
-  onEdgesChange: (edges: Edge[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection | Edge) => void;
 }
 

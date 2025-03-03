@@ -3,12 +3,12 @@ import React, { useCallback } from 'react';
 import {
   ReactFlow,
   addEdge,
-  useNodesState,
-  useEdgesState,
   Connection,
   Edge,
   Node,
   useReactFlow,
+  OnEdgesChange,
+  EdgeChange,
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
@@ -17,7 +17,7 @@ import { CustomNode } from '@/types/network';
 interface NetworkGraphProps {
   nodes: CustomNode[];
   edges: Edge[];
-  onEdgesChange: (edges: Edge[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection | Edge) => void;
   onNodeClick?: (event: React.MouseEvent<Element, MouseEvent>, node: Node) => void;
 }
@@ -53,9 +53,7 @@ const NetworkGraph: React.FC<NetworkGraphProps> = ({
         onConnect={onConnectCallback}
         onNodeClick={onNodeClickHandler}
         fitView
-        onLoad={(instance) => {
-          instance.fitView({ padding: 0.1 });
-        }}
+        fitViewOptions={{ padding: 0.1 }}
       />
     </div>
   );
