@@ -16,9 +16,23 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-export const NetworkSidebar = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+interface NetworkSidebarProps {
+  onAddNode: (nodeData: { name: string; type: string; community: number }) => void;
+  onCreateEdge: () => void;
+  onEditNode: () => void;
+  onDeleteSelection: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+}
 
+export const NetworkSidebar = ({
+  onAddNode,
+  onCreateEdge,
+  onEditNode,
+  onDeleteSelection,
+  searchQuery,
+  onSearchChange,
+}: NetworkSidebarProps) => {
   return (
     <Sidebar variant="sidebar" className="hidden md:flex w-64 border-r">
       <SidebarHeader className="border-b px-6 py-3">
@@ -37,7 +51,7 @@ export const NetworkSidebar = () => {
               placeholder="Search nodes..."
               className="pl-8 w-full"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
         </div>
@@ -47,16 +61,16 @@ export const NetworkSidebar = () => {
         {/* Network Controls */}
         <div className="px-4 py-4 space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">Network Controls</h3>
-          <AddNodeDialog onAddNode={() => {}} />
-          <Button variant="outline" className="w-full justify-start" size="sm">
+          <AddNodeDialog onAddNode={onAddNode} />
+          <Button variant="outline" className="w-full justify-start" size="sm" onClick={onCreateEdge}>
             <LinkIcon className="mr-2 h-4 w-4" />
             Create Link
           </Button>
-          <Button variant="outline" className="w-full justify-start" size="sm">
+          <Button variant="outline" className="w-full justify-start" size="sm" onClick={onEditNode}>
             <Settings className="mr-2 h-4 w-4" />
             Edit Node
           </Button>
-          <Button variant="outline" className="w-full justify-start text-destructive" size="sm">
+          <Button variant="outline" className="w-full justify-start text-destructive" size="sm" onClick={onDeleteSelection}>
             <Trash2 className="mr-2 h-4 w-4" />
             Delete Selection
           </Button>

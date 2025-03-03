@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { NetworkView } from "@/components/NetworkView";
 import { generateNodes, generateEdges } from "@/utils/network";
@@ -17,17 +17,30 @@ const Index = () => {
   const [selectedCommunities, setSelectedCommunities] = useState<number[]>(
     communities.map((_, index) => index)
   );
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter nodes based on selected communities
+  // Filter nodes based on selected communities and search query
   const filteredNodes = useMemo(() => {
-    if (selectedCommunities.length === communities.length) {
-      return nodes; // Return all nodes when all communities are selected
+    let filtered = nodes;
+    
+    // Filter by community
+    if (selectedCommunities.length < communities.length) {
+      filtered = filtered.filter(node => 
+        selectedCommunities.includes(node.data.community)
+      );
     }
     
-    return nodes.filter(node => 
-      selectedCommunities.includes(node.data.community)
-    );
-  }, [nodes, selectedCommunities]);
+    // Filter by search query if it exists
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(node => 
+        node.data.label.toLowerCase().includes(query) || 
+        (node.data.type && node.data.type.toString().toLowerCase().includes(query))
+      );
+    }
+    
+    return filtered;
+  }, [nodes, selectedCommunities, searchQuery]);
 
   // Filter edges to only include connections between visible nodes
   const filteredEdges = useMemo(() => {
@@ -37,6 +50,10 @@ const Index = () => {
       visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
     );
   }, [edges, filteredNodes]);
+
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
   const handleAddNode = (nodeData: { name: string; type: string; community: number }) => {
     const newNode: CustomNode = {
@@ -61,6 +78,85 @@ const Index = () => {
     setNodes([...nodes, newNode]);
     toast.success("Node added successfully");
   };
+
+  const handleUpdateNode = useCallback((nodeId: string, updates: { name: string; type: string; community: number }) => {
+    setNodes(prevNodes => prevNodes.map(node => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            label: updates.name,
+            type: updates.type,
+            community: updates.community
+          },
+          style: {
+            ...node.style,
+            background: communities[updates.community].color,
+          }
+        };
+      }
+      return node;
+    }));
+    toast.success("Node updated successfully");
+  }, []);
+
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    // Remove the node
+    setNodes(prevNodes => prevNodes.filter(node => node.id !== nodeId));
+    
+    // Remove all edges connected to this node
+    setEdges(prevEdges => prevEdges.filter(
+      edge => edge.source !== nodeId && edge.target !== nodeId
+    ));
+    
+    toast.success("Node deleted successfully");
+  }, []);
+
+  const handleCreateEdge = useCallback((sourceId: string, targetId: string, edgeType: string) => {
+    // Check if this edge already exists
+    const edgeExists = edges.some(
+      edge => edge.source === sourceId && edge.target === targetId
+    );
+    
+    if (edgeExists) {
+      toast.error("This connection already exists");
+      return;
+    }
+    
+    // Find the source node to get its style for the edge
+    const sourceNode = nodes.find(node => node.id === sourceId);
+    const targetNode = nodes.find(node => node.id === targetId);
+    
+    if (!sourceNode || !targetNode) {
+      toast.error("Cannot create edge: node not found");
+      return;
+    }
+    
+    const sourceCommunity = sourceNode.data.community;
+    const targetCommunity = targetNode.data.community;
+    const isCrossConnection = sourceCommunity !== targetCommunity;
+    
+    const newEdge: Edge = {
+      id: `edge-${Date.now()}`,
+      source: sourceId,
+      target: targetId,
+      type: 'custom',
+      data: {
+        type: edgeType,
+        label: isCrossConnection ? 'Cross-community' : undefined,
+      },
+      style: { 
+        stroke: isCrossConnection ? '#rgba(160, 160, 160, 0.2)' : sourceNode.style?.background as string,
+        opacity: isCrossConnection ? 0.15 : 0.25,
+        strokeWidth: 1 + (edgeType === 'strong' ? 2 : 0),
+      },
+      animated: edgeType === 'strong',
+    };
+    
+    setEdges(prevEdges => [...prevEdges, newEdge]);
+    toast.success("Link created successfully");
+  }, [edges, nodes]);
 
   const handleFilterChange = useCallback((newSelectedCommunities: number[]) => {
     setSelectedCommunities(newSelectedCommunities);
@@ -109,9 +205,15 @@ const Index = () => {
         edges={filteredEdges}
         filteredNodes={filteredNodes}
         selectedCommunities={selectedCommunities}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
         onFilterChange={handleFilterChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
+        onAddNode={handleAddNode}
+        onUpdateNode={handleUpdateNode}
+        onDeleteNode={handleDeleteNode}
+        onCreateEdge={handleCreateEdge}
       />
     </MainLayout>
   );

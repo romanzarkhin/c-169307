@@ -1,20 +1,27 @@
 
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { NetworkSidebar } from "./NetworkSidebar";
-import { MobileNavigation } from "./MobileNavigation";
+import { MobileNavigation } from "@/components/layout/MobileNavigation";
+import { NetworkSidebar } from "@/components/layout/NetworkSidebar";
+import { ReactNode } from "react";
 
 interface MainLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background w-full flex flex-col md:flex-row">
-        <NetworkSidebar />
-        <MobileNavigation />
-        {children}
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-1 flex">
+        <NetworkSidebar 
+          onAddNode={() => {}} 
+          onCreateEdge={() => {}} 
+          onEditNode={() => {}} 
+          onDeleteSelection={() => {}}
+          searchQuery=""
+          onSearchChange={() => {}}
+        />
+        <div className="flex-1 flex flex-col">{children}</div>
       </div>
-    </SidebarProvider>
+      <MobileNavigation />
+    </div>
   );
 };

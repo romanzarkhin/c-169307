@@ -6,15 +6,24 @@ import { NetworkFilter } from "@/components/NetworkFilter";
 import { CustomNode } from "@/types/network";
 import { Connection, Edge, NodeMouseHandler, EdgeChange } from "@xyflow/react";
 import { useState } from "react";
+import { EditNodeDialog } from "@/components/EditNodeDialog";
+import { CreateEdgeDialog } from "@/components/CreateEdgeDialog";
+import { NetworkSidebar } from "./layout/NetworkSidebar";
 
 interface NetworkViewProps {
   nodes: CustomNode[];
   edges: Edge[];
   filteredNodes: CustomNode[];
   selectedCommunities: number[];
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   onFilterChange: (selectedCommunities: number[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection | Edge) => void;
+  onAddNode: (nodeData: { name: string; type: string; community: number }) => void;
+  onUpdateNode: (nodeId: string, updates: { name: string; type: string; community: number }) => void;
+  onDeleteNode: (nodeId: string) => void;
+  onCreateEdge: (sourceId: string, targetId: string, edgeType: string) => void;
 }
 
 export const NetworkView = ({ 
@@ -22,15 +31,40 @@ export const NetworkView = ({
   edges, 
   filteredNodes,
   selectedCommunities,
+  searchQuery,
+  onSearchChange,
   onFilterChange,
   onEdgesChange, 
-  onConnect 
+  onConnect,
+  onAddNode,
+  onUpdateNode,
+  onDeleteNode,
+  onCreateEdge
 }: NetworkViewProps) => {
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateEdgeDialogOpen, setIsCreateEdgeDialogOpen] = useState(false);
 
   // Updated to match NodeMouseHandler signature with correct event parameter
   const handleNodeClick: NodeMouseHandler<CustomNode> = (_, node) => {
     setSelectedNode(node);
+  };
+  
+  const handleEditNode = () => {
+    if (selectedNode) {
+      setIsEditDialogOpen(true);
+    } else {
+      console.log("Please select a node to edit");
+    }
+  };
+  
+  const handleDeleteSelection = () => {
+    if (selectedNode) {
+      onDeleteNode(selectedNode.id);
+      setSelectedNode(null);
+    } else {
+      console.log("Please select a node to delete");
+    }
   };
 
   return (
@@ -46,6 +80,18 @@ export const NetworkView = ({
 
       {/* Graph Area */}
       <div className="flex-1 flex flex-col lg:flex-row">
+        {/* Left Sidebar - Mobile only */}
+        <div className="lg:hidden">
+          <NetworkSidebar 
+            onAddNode={onAddNode}
+            onCreateEdge={() => setIsCreateEdgeDialogOpen(true)}
+            onEditNode={handleEditNode}
+            onDeleteSelection={handleDeleteSelection}
+            searchQuery={searchQuery}
+            onSearchChange={onSearchChange}
+          />
+        </div>
+        
         <div className="flex-1 p-4 md:p-6">
           <Card className="h-full">
             <ReactFlowProvider>
@@ -63,12 +109,35 @@ export const NetworkView = ({
         {/* Right Sidebar - Network Data and Node Details */}
         <div className="border-t lg:border-t-0 lg:border-l w-full lg:w-80 p-4 overflow-y-auto">
           {selectedNode ? (
-            <NodeDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} />
+            <NodeDetailPanel 
+              node={selectedNode} 
+              onClose={() => setSelectedNode(null)}
+              onEdit={() => setIsEditDialogOpen(true)}
+              onDelete={() => {
+                onDeleteNode(selectedNode.id);
+                setSelectedNode(null);
+              }}
+            />
           ) : (
             <NetworkDataSidebar nodes={nodes} edges={edges} />
           )}
         </div>
       </div>
+      
+      {/* Dialogs */}
+      <EditNodeDialog 
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        node={selectedNode}
+        onUpdateNode={onUpdateNode}
+      />
+      
+      <CreateEdgeDialog
+        open={isCreateEdgeDialogOpen}
+        onOpenChange={setIsCreateEdgeDialogOpen}
+        nodes={nodes}
+        onCreateEdge={onCreateEdge}
+      />
     </div>
   );
 };
@@ -77,9 +146,11 @@ export const NetworkView = ({
 interface NodeDetailPanelProps {
   node: CustomNode;
   onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-const NodeDetailPanel = ({ node, onClose }: NodeDetailPanelProps) => {
+const NodeDetailPanel = ({ node, onClose, onEdit, onDelete }: NodeDetailPanelProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -116,6 +187,15 @@ const NodeDetailPanel = ({ node, onClose }: NodeDetailPanelProps) => {
           label="Position" 
           value={`X: ${Math.round(node.position.x)}, Y: ${Math.round(node.position.y)}`}
         />
+      </div>
+      
+      <div className="flex space-x-2 pt-4">
+        <Button variant="outline" size="sm" className="flex-1" onClick={onEdit}>
+          Edit Node
+        </Button>
+        <Button variant="outline" size="sm" className="flex-1 text-destructive" onClick={onDelete}>
+          Delete Node
+        </Button>
       </div>
       
       <div className="border-t pt-4 mt-4">
