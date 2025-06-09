@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
 import { AddNodeDialog } from "@/components/AddNodeDialog";
 import {
   NetworkIcon,
@@ -14,7 +13,6 @@ import {
   Settings,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
 
 interface NetworkSidebarProps {
   onAddNode: (nodeData: { name: string; type: string; community: number }) => void;
@@ -34,14 +32,14 @@ export const NetworkSidebar = ({
   onSearchChange,
 }: NetworkSidebarProps) => {
   return (
-    <Sidebar variant="sidebar" className="hidden md:flex w-64 border-r">
-      <SidebarHeader className="border-b px-6 py-3">
+    <div className="hidden md:flex w-64 border-r bg-background flex-col">
+      <div className="border-b px-6 py-3">
         <div className="flex items-center gap-2">
           <NetworkIcon className="h-6 w-6 text-primary" />
           <h1 className="text-xl font-semibold">CollabGraph</h1>
         </div>
-      </SidebarHeader>
-      <SidebarContent>
+      </div>
+      <div className="flex-1 flex flex-col">
         {/* Search Bar */}
         <div className="px-4 py-4">
           <div className="relative">
@@ -94,7 +92,7 @@ export const NetworkSidebar = ({
             Engagements
           </Button>
         </div>
-      </SidebarContent>
-    </Sidebar>
+      </div>
+    </div>
   );
 };
