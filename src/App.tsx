@@ -8,7 +8,7 @@ import NotFound from "./pages/NotFound";
 import { AppLayout } from "./components/layout/AppLayout";
 import HomePage from "./pages/Index"; // Index is now HomePage
 import MonitoringPage from "./pages/MonitoringPage";
-import WikiPage from "./pages/WikiPage(1)";
+import WikiPage from "./pages/WikiPage";
 import CalendarPage from "./pages/CalendarPage";
 import AgentPage from "./pages/AgentPage";
 import SettingsPage from "./pages/SettingsPage";
