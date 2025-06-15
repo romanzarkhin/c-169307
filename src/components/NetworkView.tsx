@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { ReactFlowProvider } from "@xyflow/react";
 import NetworkGraph from "@/components/NetworkGraph";
@@ -7,11 +8,7 @@ import { NetworkLayoutControls, LayoutType } from "@/components/NetworkLayoutCon
 import { NetworkPersistenceControls } from "@/components/NetworkPersistenceControls";
 import { CustomNode } from "@/types/network";
 import { Connection, Edge, NodeMouseHandler, EdgeChange } from "@xyflow/react";
-import { useState } from "react";
-import { EditNodeDialog } from "@/components/EditNodeDialog";
-import { CreateEdgeDialog } from "@/components/CreateEdgeDialog";
-import { NetworkSidebar } from "./layout/NetworkSidebar";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NodeDetailPanel } from "@/components/NodeDetailPanel";
 
@@ -31,6 +28,11 @@ interface NetworkViewProps {
   onCreateEdge: (sourceId: string, targetId: string, edgeType: string) => void;
   onApplyLayout: (type: LayoutType, options: any) => void;
   onLoadNetwork: (nodes: CustomNode[], edges: Edge[]) => void;
+  selectedNode: CustomNode | null;
+  onNodeClick: NodeMouseHandler<CustomNode>;
+  onCloseNodeDetail: () => void;
+  onEditSelectedNode: () => void;
+  onDeleteSelectedNode: () => void;
 }
 
 export const NetworkView = ({ 
@@ -38,46 +40,29 @@ export const NetworkView = ({
   edges, 
   filteredNodes,
   selectedCommunities,
-  searchQuery,
-  onSearchChange,
   onFilterChange,
   onEdgesChange, 
   onConnect,
-  onAddNode,
-  onUpdateNode,
-  onDeleteNode,
-  onCreateEdge,
   onApplyLayout,
-  onLoadNetwork
+  onLoadNetwork,
+  selectedNode,
+  onNodeClick,
+  onCloseNodeDetail,
+  onEditSelectedNode,
+  onDeleteSelectedNode
 }: NetworkViewProps) => {
-  const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isCreateEdgeDialogOpen, setIsCreateEdgeDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
-  const handleNodeClick: NodeMouseHandler<CustomNode> = (_, node) => {
-    setSelectedNode(node);
-  };
-  
-  const handleEditNode = () => {
+  useEffect(() => {
     if (selectedNode) {
-      setIsEditDialogOpen(true);
-    } else {
-      console.log("Please select a node to edit");
+      setActiveTab("details");
+    } else if (activeTab === "details") {
+      setActiveTab("overview");
     }
-  };
-  
-  const handleDeleteSelection = () => {
-    if (selectedNode) {
-      onDeleteNode(selectedNode.id);
-      setSelectedNode(null);
-    } else {
-      console.log("Please select a node to delete");
-    }
-  };
+  }, [selectedNode, activeTab]);
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col h-full">
       <div className="border-b px-4 md:px-6 py-3 flex justify-between items-center">
         <h2 className="text-lg font-medium">Network Visualization</h2>
         <NetworkFilter 
@@ -86,18 +71,7 @@ export const NetworkView = ({
         />
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row">
-        <div className="lg:hidden">
-          <NetworkSidebar 
-            onAddNode={onAddNode}
-            onCreateEdge={() => setIsCreateEdgeDialogOpen(true)}
-            onEditNode={handleEditNode}
-            onDeleteSelection={handleDeleteSelection}
-            searchQuery={searchQuery}
-            onSearchChange={onSearchChange}
-          />
-        </div>
-        
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0">
         <div className="flex-1 p-4 md:p-6">
           <Card className="h-full">
             <ReactFlowProvider>
@@ -106,14 +80,14 @@ export const NetworkView = ({
                 edges={edges}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                onNodeClick={handleNodeClick}
+                onNodeClick={onNodeClick}
               />
             </ReactFlowProvider>
           </Card>
         </div>
 
-        <div className="border-t lg:border-t-0 lg:border-l w-full lg:w-80 p-4 overflow-y-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="border-t lg:border-t-0 lg:border-l w-full lg:w-80 p-4 overflow-y-auto bg-background">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
             <TabsList className="w-full mb-4">
               <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
               <TabsTrigger value="tools" className="flex-1">Tools</TabsTrigger>
@@ -122,49 +96,34 @@ export const NetworkView = ({
               )}
             </TabsList>
             
-            <TabsContent value="overview">
-              <NetworkDataSidebar nodes={nodes} edges={edges} />
-            </TabsContent>
-            
-            <TabsContent value="tools" className="space-y-6">
-              <NetworkLayoutControls onApplyLayout={onApplyLayout} />
-              <NetworkPersistenceControls
-                nodes={nodes}
-                edges={edges}
-                onLoadNetwork={onLoadNetwork}
-              />
-            </TabsContent>
-            
-            <TabsContent value="details">
-              {selectedNode && (
-                <NodeDetailPanel 
-                  node={selectedNode} 
-                  onClose={() => setSelectedNode(null)}
-                  onEdit={() => setIsEditDialogOpen(true)}
-                  onDelete={() => {
-                    onDeleteNode(selectedNode.id);
-                    setSelectedNode(null);
-                  }}
+            <div className="flex-1 overflow-y-auto">
+              <TabsContent value="overview">
+                <NetworkDataSidebar nodes={nodes} edges={edges} />
+              </TabsContent>
+              
+              <TabsContent value="tools" className="space-y-6">
+                <NetworkLayoutControls onApplyLayout={onApplyLayout} />
+                <NetworkPersistenceControls
+                  nodes={nodes}
+                  edges={edges}
+                  onLoadNetwork={onLoadNetwork}
                 />
-              )}
-            </TabsContent>
+              </TabsContent>
+              
+              <TabsContent value="details">
+                {selectedNode && (
+                  <NodeDetailPanel 
+                    node={selectedNode} 
+                    onClose={onCloseNodeDetail}
+                    onEdit={onEditSelectedNode}
+                    onDelete={onDeleteSelectedNode}
+                  />
+                )}
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
       </div>
-      
-      <EditNodeDialog 
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        node={selectedNode}
-        onUpdateNode={onUpdateNode}
-      />
-      
-      <CreateEdgeDialog
-        open={isCreateEdgeDialogOpen}
-        onOpenChange={setIsCreateEdgeDialogOpen}
-        nodes={nodes}
-        onCreateEdge={onCreateEdge}
-      />
     </div>
   );
 };

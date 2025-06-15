@@ -1,10 +1,17 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { AppLayout } from "./components/layout/AppLayout";
+import HomePage from "./pages/Index"; // Index is now HomePage
+import MonitoringPage from "./pages/MonitoringPage";
+import WikiPage from "./pages/WikiPage";
+import CalendarPage from "./pages/CalendarPage";
+import AgentPage from "./pages/AgentPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -15,9 +22,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/monitoring" element={<MonitoringPage />} />
+            <Route path="/wiki" element={<WikiPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/agent" element={<AgentPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
@@ -25,3 +38,4 @@ const App = () => (
 );
 
 export default App;
+
