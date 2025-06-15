@@ -1,3 +1,12 @@
+✅ Highlights of version v0.4-monitoring-stable:
+
+Monitoring tab fully stabilized (no Safari crash, now Firefox-ready)
+Calendar tab: full month view, hover-enhanced weeks, event/task display
+Tasker: intelligent assignment system, suggested task integration
+News Feed: dynamic, tracks task + document updates
+Wiki tab: file management with preview/download, status dropdowns, user permissions, and history
+Agent tab: connected to Mistral with context-aware suggested prompts
+
 # Welcome to your Lovable project
 
 ## Project info
