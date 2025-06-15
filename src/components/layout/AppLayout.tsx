@@ -1,62 +1,94 @@
-
+import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "./AppSidebar";
-import { menuItems } from "@/config/nav";
-import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  FaUserCircle,
+  FaHome,
+  FaCalendarAlt,
+  FaCogs,
+  FaBrain,
+  FaChartLine,
+  FaBook,
+} from "react-icons/fa";
 
-export function AppLayout() {
+const AppLayout: React.FC = () => {
   const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
+
+  const navItems = [
+    { path: "/", icon: <FaHome />, label: "Home" },
+    { path: "/monitoring", icon: <FaChartLine />, label: "Monitoring" },
+    { path: "/wiki", icon: <FaBook />, label: "Wiki" },
+    { path: "/calendar", icon: <FaCalendarAlt />, label: "Calendar" },
+    { path: "/agent", icon: <FaBrain />, label: "Agent" },
+    { path: "/settings", icon: <FaCogs />, label: "Settings" },
+  ];
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 flex flex-col">
-          <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-6 sticky top-0 z-30">
-            <SidebarTrigger />
-            <nav className="flex-1 flex justify-center items-center">
-              <TooltipProvider>
-                <div className="flex items-center gap-1">
-                  {menuItems.map((item) => (
-                    <Tooltip key={item.label} delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          asChild
-                          variant={
-                            location.pathname === item.href
-                              ? "secondary"
-                              : "ghost"
-                          }
-                          size="icon"
-                          className="rounded-full"
-                        >
-                          <Link to={item.href}>
-                            <item.icon className="h-5 w-5" />
-                            <span className="sr-only">{item.label}</span>
-                          </Link>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{item.label}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </div>
-              </TooltipProvider>
-            </nav>
-          </header>
-          <div className="flex-1 overflow-auto">
-            <Outlet />
-          </div>
-        </main>
-      </div>
-    </SidebarProvider>
+    <div className="flex flex-col min-h-screen">
+      {/* Top Bar */}
+      <header className="flex items-center justify-between px-6 py-3 border-b bg-background shadow-sm">
+        {/* Left: App icon + name */}
+        <div className="flex items-center gap-2 text-lg font-semibold">
+          <FaUserCircle className="text-xl text-blue-600" />
+          <span>ComplianceApp</span>
+        </div>
+
+        {/* Center: Nav Icons */}
+        <nav className="flex gap-6 text-lg">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-1 transition-colors ${
+                isActive(item.path)
+                  ? "text-blue-600 font-bold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title={item.label}
+            >
+              {item.icon}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Right: Dark mode toggle + User dropdown */}
+        <div className="flex items-center gap-4">
+          <ModeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="cursor-pointer">
+                <AvatarImage src="" alt="user" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => alert("Navigate to account")}>
+                My Account
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => alert("Logging out...")}>
+                Log Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </header>
+
+      {/* Page Content */}
+      <main className="flex flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-4">
+          <Outlet />
+        </div>
+      </main>
+    </div>
   );
-}
+};
+
+export default AppLayout;
