@@ -16,6 +16,7 @@ import {
   FaBrain,
   FaChartLine,
   FaBook,
+  FaFileAlt,
 } from "react-icons/fa";
 
 const AppLayout: React.FC = () => {
@@ -26,6 +27,7 @@ const AppLayout: React.FC = () => {
     { path: "/", icon: <FaHome />, label: "Home" },
     { path: "/monitoring", icon: <FaChartLine />, label: "Monitoring" },
     { path: "/wiki", icon: <FaBook />, label: "Wiki" },
+    { path: "/reporting", icon: <FaFileAlt />, label: "Reporting" },
     { path: "/calendar", icon: <FaCalendarAlt />, label: "Calendar" },
     { path: "/agent", icon: <FaBrain />, label: "Agent" },
     { path: "/settings", icon: <FaCogs />, label: "Settings" },

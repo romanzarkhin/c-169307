@@ -11,6 +11,7 @@ import CalendarPage from "./pages/CalendarPage";
 import AgentPage from "./pages/AgentPage";
 import SettingsPage from "./pages/SettingsPage";
 import DashboardPage from "./pages/DashboardPage";
+import ReportingPage from "./pages/ReportingPage";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/agent" element={<AgentPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/reporting" element={<ReportingPage />} />
             <Route path="*" element={<NotFound />} />
             <Route path="x" element={<DashboardPage />} />
           </Route>
