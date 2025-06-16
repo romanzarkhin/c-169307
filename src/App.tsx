@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
-import HomePage from "./pages/Index"; // Index is now HomePage
 import MonitoringPage from "./pages/MonitoringPage";
 import WikiPage from "./pages/WikiPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -23,7 +22,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<DashboardPage />} />
             <Route path="/monitoring" element={<MonitoringPage />} />
             <Route path="/wiki" element={<WikiPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
