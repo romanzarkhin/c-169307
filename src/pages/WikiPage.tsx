@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 
 type Permission = "view" | "edit" | "admin";
 
@@ -40,8 +42,32 @@ const initialData: WikiFile[] = [
   },
 ];
 
+// LocalStorage keys for WIKI
+const WIKI_FILES_KEY = "wiki-files";
+
+function saveWikiToStorage(value: any) {
+  localStorage.setItem(WIKI_FILES_KEY, JSON.stringify(value));
+}
+function loadWikiFromStorage<T>(fallback: T): T {
+  const val = localStorage.getItem(WIKI_FILES_KEY);
+  if (!val) return fallback;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return fallback;
+  }
+}
+
+// Hardcoded users for the dropdown
+const USERS = ["Dana", "Lotem", "Alex"];
+const PERMISSION_OPTIONS: { label: string; value: Permission }[] = [
+  { label: "Viewer", value: "view" },
+  { label: "Editor", value: "edit" },
+  { label: "Admin", value: "admin" },
+];
+
 const Wiki: React.FC = () => {
-  const [files, setFiles] = useState<WikiFile[]>(initialData);
+  const [files, setFiles] = useState<WikiFile[]>(() => loadWikiFromStorage(initialData));
   const [newFile, setNewFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState({
     name: "",
@@ -50,6 +76,17 @@ const Wiki: React.FC = () => {
     status: "Draft" as WikiFile["status"],
     permissions: "",
   });
+  const [userPermissions, setUserPermissions] = useState<{ [user: string]: Permission }>({});
+
+  // Load from localStorage on mount
+  React.useEffect(() => {
+    setFiles(loadWikiFromStorage(initialData));
+  }, []);
+
+  // Save to localStorage on change
+  React.useEffect(() => {
+    saveWikiToStorage(files);
+  }, [files]);
 
   const handleUpload = () => {
     if (!newFile || !metadata.name || !metadata.owner) return;
@@ -62,12 +99,9 @@ const Wiki: React.FC = () => {
       status: metadata.status,
       lastEdited: new Date(),
       history: [{ status: metadata.status, changedAt: new Date() }],
-      permissions: metadata.permissions
-        .split(",")
-        .map((p) => {
-          const [user, level] = p.split(":");
-          return { user: user.trim(), level: level.trim() as Permission };
-        }),
+      permissions: Object.entries(userPermissions)
+        .filter(([_, level]) => level)
+        .map(([user, level]) => ({ user, level })),
     };
 
     setFiles((prev) => [file, ...prev]);
@@ -79,6 +113,7 @@ const Wiki: React.FC = () => {
       status: "Draft",
       permissions: "",
     });
+    setUserPermissions({});
   };
 
   const updateStatus = (id: string, newStatus: WikiFile["status"]) => {
@@ -127,13 +162,40 @@ const Wiki: React.FC = () => {
           <option value="Review">Review</option>
           <option value="Final">Final</option>
         </select>
-        <Input
-          placeholder="Permissions (e.g. Dana:admin, Lotem:edit)"
-          value={metadata.permissions}
-          onChange={(e) =>
-            setMetadata({ ...metadata, permissions: e.target.value })
-          }
-        />
+        {/* Permissions popover */}
+        <div className="flex flex-col gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left"
+                type="button"
+              >
+                Permissions
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" align="end">
+              <Label className="mb-2 block text-xs text-muted-foreground">Set permissions for users</Label>
+              <div className="flex flex-col gap-2">
+                {USERS.map((user) => (
+                  <div key={user} className="flex items-center gap-2">
+                    <span className="w-16 text-sm">{user}</span>
+                    <select
+                      className="border rounded p-1 text-sm"
+                      value={userPermissions[user] || ""}
+                      onChange={e => setUserPermissions({ ...userPermissions, [user]: e.target.value as Permission })}
+                    >
+                      <option value="">None</option>
+                      {PERMISSION_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       <Input

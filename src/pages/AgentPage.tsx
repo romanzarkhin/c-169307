@@ -56,8 +56,20 @@ const AgentChatbot: React.FC = () => {
       <CardContent className="space-y-4">
         <div className="h-80 overflow-y-auto border rounded p-4 bg-muted/10">
           {messages.map((msg, idx) => (
-            <div key={idx} className={`mb-2 text-sm ${msg.sender === "user" ? "text-right" : "text-left text-blue-700"}`}>
-              <strong>{msg.sender === "user" ? "You" : "Agent"}:</strong> {msg.text}
+            <div
+              key={idx}
+              className={`mb-2 text-sm ${msg.sender === "user" ? "text-right" : "text-left text-blue-700"}`}
+            >
+              <strong>{msg.sender === "user" ? "You" : "Agent"}:</strong>{" "}
+              {msg.sender === "agent" ? (
+                <div
+                  className="whitespace-pre-wrap"
+                  style={{ wordBreak: "break-word" }}
+                  dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\* (.*?)\n/g, '<li>$1</li>').replace(/\n{2,}/g, '<br/><br/>') }}
+                />
+              ) : (
+                msg.text
+              )}
             </div>
           ))}
         </div>

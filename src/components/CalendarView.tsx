@@ -31,6 +31,20 @@ interface NewEvent {
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+const CALENDAR_EVENTS_KEY = "calendar-events";
+function saveCalendarEventsToStorage(value: Event[]) {
+  localStorage.setItem(CALENDAR_EVENTS_KEY, JSON.stringify(value));
+}
+function loadCalendarEventsFromStorage(): Event[] {
+  const val = localStorage.getItem(CALENDAR_EVENTS_KEY);
+  if (!val) return [];
+  try {
+    return JSON.parse(val);
+  } catch {
+    return [];
+  }
+}
+
 const CalendarView: React.FC = () => {
   const today = new Date();
   const monthStart = startOfMonth(today);
@@ -38,7 +52,7 @@ const CalendarView: React.FC = () => {
   const totalDays = 42;
   const calendarDays = Array.from({ length: totalDays }, (_, i) => addDays(calendarStart, i));
 
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<Event[]>(() => loadCalendarEventsFromStorage());
   const [newEvent, setNewEvent] = useState<NewEvent>({ title: "", date: format(today, "yyyy-MM-dd"), recurring: "none" });
   const [hoverWeek, setHoverWeek] = useState<number | null>(null);
 
@@ -69,6 +83,11 @@ const CalendarView: React.FC = () => {
     setEvents((prev: Event[]) => [...instances, ...prev]);
     setNewEvent({ title: "", date: format(today, "yyyy-MM-dd"), recurring: "none" });
   };
+
+  // Save to localStorage on change
+  React.useEffect(() => {
+    saveCalendarEventsToStorage(events);
+  }, [events]);
 
   return (
     <Card className="h-full">

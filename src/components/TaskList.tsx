@@ -27,8 +27,22 @@ const mockSuggestedTasks: Task[] = [
 
 const teamMembers = ["Dana", "Lotem", "Yossi"];
 
+const TASKS_KEY = "calendar-tasks";
+function saveTasksToStorage(value: Task[]) {
+  localStorage.setItem(TASKS_KEY, JSON.stringify(value));
+}
+function loadTasksFromStorage(): Task[] {
+  const val = localStorage.getItem(TASKS_KEY);
+  if (!val) return [];
+  try {
+    return JSON.parse(val);
+  } catch {
+    return [];
+  }
+}
+
 const TaskList: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => loadTasksFromStorage());
   const [suggested, setSuggested] = useState<Task[]>(mockSuggestedTasks);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [assignee, setAssignee] = useState<string>("");
@@ -54,6 +68,11 @@ const TaskList: React.FC = () => {
   const toggleComplete = (id: number) => {
     setTasks(tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
   };
+
+  // Save to localStorage on change
+  React.useEffect(() => {
+    saveTasksToStorage(tasks);
+  }, [tasks]);
 
   return (
     <Card className="h-full flex flex-col">

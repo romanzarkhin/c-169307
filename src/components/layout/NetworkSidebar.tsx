@@ -1,10 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { AddNodeDialog } from "@/components/AddNodeDialog";
 import {
-  NetworkIcon,
   Search,
   Users,
   Calendar,
@@ -34,10 +32,7 @@ export const NetworkSidebar = ({
   return (
     <div className="hidden md:flex w-64 border-r bg-background flex-col">
       <div className="border-b px-6 py-3">
-        <div className="flex items-center gap-2">
-          <NetworkIcon className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-semibold">CollabGraph</h1>
-        </div>
+        {/* Removed NetworkIcon and CollabGraph title */}
       </div>
       <div className="flex-1 flex flex-col">
         {/* Search Bar */}

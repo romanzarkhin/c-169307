@@ -148,6 +148,28 @@ const initialSARForm = {
   detection: "Automated alert",
 };
 
+// LocalStorage keys
+const REPORTS_KEY = "reporting-reports";
+const SAR_FORM_KEY = "reporting-sar-form";
+const SAR_NARRATIVE_KEY = "reporting-sar-narrative";
+const CTR_TYPE_KEY = "reporting-ctr-type";
+const CTR_MONTH_KEY = "reporting-ctr-month";
+const CTR_YEAR_KEY = "reporting-ctr-year";
+const CTR_COMMENTS_KEY = "reporting-ctr-comments";
+
+function saveToStorage(key: string, value: any) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+function loadFromStorage<T>(key: string, fallback: T): T {
+  const val = localStorage.getItem(key);
+  if (!val) return fallback;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return fallback;
+  }
+}
+
 const ReportingPage: React.FC = () => {
   const [reportType, setReportType] = useState("SAR");
   const [sarAnswers, setSarAnswers] = useState(initialSARAnswers);
@@ -159,6 +181,41 @@ const ReportingPage: React.FC = () => {
   const [showReview, setShowReview] = useState(false);
   const [sarForm, setSarForm] = useState(initialSARForm);
   const [sarNarrative, setSarNarrative] = useState("");
+  const [showNewReport, setShowNewReport] = useState(false);
+
+  // Load from localStorage on mount
+  React.useEffect(() => {
+    setReports(loadFromStorage(REPORTS_KEY, initialReports));
+    setSarForm(loadFromStorage(SAR_FORM_KEY, initialSARForm));
+    setSarNarrative(loadFromStorage(SAR_NARRATIVE_KEY, ""));
+    setCtrType(loadFromStorage(CTR_TYPE_KEY, "CTR"));
+    setCtrMonth(loadFromStorage(CTR_MONTH_KEY, months[new Date().getMonth()]));
+    setCtrYear(loadFromStorage(CTR_YEAR_KEY, years[0]));
+    setCtrComments(loadFromStorage(CTR_COMMENTS_KEY, ""));
+  }, []);
+
+  // Save to localStorage on change
+  React.useEffect(() => {
+    saveToStorage(REPORTS_KEY, reports);
+  }, [reports]);
+  React.useEffect(() => {
+    saveToStorage(SAR_FORM_KEY, sarForm);
+  }, [sarForm]);
+  React.useEffect(() => {
+    saveToStorage(SAR_NARRATIVE_KEY, sarNarrative);
+  }, [sarNarrative]);
+  React.useEffect(() => {
+    saveToStorage(CTR_TYPE_KEY, ctrType);
+  }, [ctrType]);
+  React.useEffect(() => {
+    saveToStorage(CTR_MONTH_KEY, ctrMonth);
+  }, [ctrMonth]);
+  React.useEffect(() => {
+    saveToStorage(CTR_YEAR_KEY, ctrYear);
+  }, [ctrYear]);
+  React.useEffect(() => {
+    saveToStorage(CTR_COMMENTS_KEY, ctrComments);
+  }, [ctrComments]);
 
   // SAR handlers
   const handleSarAnswer = (sectionIdx: number, qIdx: number, value: string) => {
@@ -213,142 +270,164 @@ const ReportingPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>New Report</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-4">
-            <Button
-              variant={reportType === "SAR" ? "default" : "outline"}
-              onClick={() => setReportType("SAR")}
-            >
-              SAR
-            </Button>
-            <Button
-              variant={reportType === "CTR" ? "default" : "outline"}
-              onClick={() => setReportType("CTR")}
-            >
-              CTR
-            </Button>
-          </div>
+      {/* New Report Button */}
+      <div className="flex justify-end mb-4">
+        {!showNewReport && (
+          <Button onClick={() => setShowNewReport(true)} variant="default">
+            New Report
+          </Button>
+        )}
+      </div>
+      {/* New Report Section (conditionally rendered) */}
+      {showNewReport && (
+        <Card>
+          <CardHeader>
+            <CardTitle>New Report</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4 mb-4">
+              <Button
+                variant={reportType === "SAR" ? "default" : "outline"}
+                onClick={() => setReportType("SAR")}
+              >
+                SAR
+              </Button>
+              <Button
+                variant={reportType === "CTR" ? "default" : "outline"}
+                onClick={() => setReportType("CTR")}
+              >
+                CTR
+              </Button>
+            </div>
 
-          {/* SAR Form - new schema */}
-          {reportType === "SAR" && !showReview && (
-            <form className="space-y-6">
-              {sarSectionSchema.map((section) => (
-                <div key={section.title} className="border rounded p-4 mb-2">
-                  <h3 className="font-semibold mb-2">{section.title}</h3>
-                  <select
-                    className="border px-2 py-1 rounded text-sm w-full"
-                    value={sarForm[section.field]}
-                    onChange={(e) => setSarForm((prev) => ({ ...prev, [section.field]: e.target.value }))}
+            {/* SAR Form - new schema */}
+            {reportType === "SAR" && !showReview && (
+              <form className="space-y-6">
+                {sarSectionSchema.map((section) => (
+                  <div key={section.title} className="border rounded p-4 mb-2">
+                    <h3 className="font-semibold mb-2">{section.title}</h3>
+                    <select
+                      className="border px-2 py-1 rounded text-sm w-full"
+                      value={sarForm[section.field]}
+                      onChange={(e) => setSarForm((prev) => ({ ...prev, [section.field]: e.target.value }))}
+                    >
+                      {section.options.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+                <Button type="button" onClick={suggestNarrative}>
+                  Suggest Narrative
+                </Button>
+                <div className="border rounded p-4 my-2 bg-muted/30">
+                  <div className="font-semibold mb-1">Suggested Narrative:</div>
+                  <textarea
+                    className="w-full min-h-[80px] border rounded p-2 text-sm"
+                    value={sarNarrative}
+                    onChange={e => setSarNarrative(e.target.value)}
+                  />
+                </div>
+                <Button type="button" onClick={() => setShowReview(true)}>
+                  Review SAR
+                </Button>
+              </form>
+            )}
+
+            {/* SAR Review - show fields and values */}
+            {reportType === "SAR" && showReview && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">SAR Review</h3>
+                <div className="border rounded p-4 mb-2">
+                  <ul className="list-disc ml-6 space-y-2">
+                    {sarSectionSchema.map((section) => (
+                      <li key={section.title} className="flex items-center gap-2">
+                        <span className="font-medium min-w-[140px]">{section.title}</span>:
+                        <input
+                          className="border rounded px-2 py-1 text-sm flex-1"
+                          value={sarForm[section.field]}
+                          onChange={e => setSarForm(prev => ({ ...prev, [section.field]: e.target.value }))}
+                        />
+                      </li>
+                    ))}
+                    <li className="flex items-center gap-2">
+                      <span className="font-medium min-w-[140px]">Narrative</span>:
+                      <textarea
+                        className="border rounded px-2 py-1 text-sm flex-1 min-h-[60px]"
+                        value={sarNarrative}
+                        onChange={e => setSarNarrative(e.target.value)}
+                      />
+                    </li>
+                  </ul>
+                </div>
+                <Button type="button" onClick={handleSubmitSAR}>
+                  Submit SAR as Draft
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowReview(false)}>
+                  Back to Edit
+                </Button>
+              </div>
+            )}
+
+            {/* CTR Form - improved month/year selection */}
+            {reportType === "CTR" && (
+              <form className="space-y-6">
+                <div className="flex gap-4 mb-2">
+                  <Button
+                    variant={ctrType === "CTR" ? "default" : "outline"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCtrType("CTR");
+                    }}
                   >
-                    {section.options.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                    CTR
+                  </Button>
+                  <Button
+                    variant={ctrType === "CTR-UPD" ? "default" : "outline"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCtrType("CTR-UPD");
+                    }}
+                  >
+                    CTR-UPD
+                  </Button>
+                </div>
+                <div className="flex gap-4 mb-2">
+                  <select
+                    className="border px-2 py-1 rounded text-sm"
+                    value={ctrMonth}
+                    onChange={(e) => setCtrMonth(e.target.value)}
+                  >
+                    {months.map((m) => (
+                      <option key={m}>{m}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="border px-2 py-1 rounded text-sm"
+                    value={ctrYear}
+                    onChange={(e) => setCtrYear(Number(e.target.value))}
+                  >
+                    {years.map((y) => (
+                      <option key={y}>{y}</option>
                     ))}
                   </select>
                 </div>
-              ))}
-              <Button type="button" onClick={suggestNarrative}>
-                Suggest Narrative
-              </Button>
-              {sarNarrative && (
-                <div className="border rounded p-4 my-2 bg-muted/30">
-                  <div className="font-semibold mb-1">Suggested Narrative:</div>
-                  <div className="text-sm">{sarNarrative}</div>
+                <div className="mb-2">
+                  <label className="block text-sm mb-1">Comments</label>
+                  <Input
+                    value={ctrComments}
+                    onChange={(e) => setCtrComments(e.target.value)}
+                    placeholder="Add comments for this CTR..."
+                  />
                 </div>
-              )}
-              <Button type="button" onClick={() => setShowReview(true)}>
-                Review SAR
-              </Button>
-            </form>
-          )}
-
-          {/* SAR Review - show fields and values */}
-          {reportType === "SAR" && showReview && (
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">SAR Review</h3>
-              <div className="border rounded p-4 mb-2">
-                <ul className="list-disc ml-6">
-                  {sarSectionSchema.map((section) => (
-                    <li key={section.title}>
-                      <span className="font-medium">{section.title}</span>: {sarForm[section.field]}
-                    </li>
-                  ))}
-                  <li>
-                    <span className="font-medium">Narrative</span>: {sarNarrative}
-                  </li>
-                </ul>
-              </div>
-              <Button type="button" onClick={handleSubmitSAR}>
-                Submit SAR as Draft
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setShowReview(false)}>
-                Back to Edit
-              </Button>
-            </div>
-          )}
-
-          {/* CTR Form - improved month/year selection */}
-          {reportType === "CTR" && (
-            <form className="space-y-6">
-              <div className="flex gap-4 mb-2">
-                <Button
-                  variant={ctrType === "CTR" ? "default" : "outline"}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCtrType("CTR");
-                  }}
-                >
-                  CTR
+                <Button type="button" onClick={handleSubmitCTR}>
+                  Submit CTR as Draft
                 </Button>
-                <Button
-                  variant={ctrType === "CTR-UPD" ? "default" : "outline"}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCtrType("CTR-UPD");
-                  }}
-                >
-                  CTR-UPD
-                </Button>
-              </div>
-              <div className="flex gap-4 mb-2">
-                <select
-                  className="border px-2 py-1 rounded text-sm"
-                  value={ctrMonth}
-                  onChange={(e) => setCtrMonth(e.target.value)}
-                >
-                  {months.map((m) => (
-                    <option key={m}>{m}</option>
-                  ))}
-                </select>
-                <select
-                  className="border px-2 py-1 rounded text-sm"
-                  value={ctrYear}
-                  onChange={(e) => setCtrYear(Number(e.target.value))}
-                >
-                  {years.map((y) => (
-                    <option key={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-2">
-                <label className="block text-sm mb-1">Comments</label>
-                <Input
-                  value={ctrComments}
-                  onChange={(e) => setCtrComments(e.target.value)}
-                  placeholder="Add comments for this CTR..."
-                />
-              </div>
-              <Button type="button" onClick={handleSubmitCTR}>
-                Submit CTR as Draft
-              </Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
-
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      )}
       {/* Reporting Log Table with status dropdown */}
       <Card>
         <CardHeader>
